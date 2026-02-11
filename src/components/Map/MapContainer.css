@@ -1,0 +1,25 @@
+.map-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.map {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-bg);
+    /* Loading state bg */
+}
+
+.map-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-rant);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+}
