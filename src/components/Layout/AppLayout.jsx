@@ -1,7 +1,9 @@
 import React from 'react';
 import MapContainer from '../Map/MapContainer';
 import SidePanel from '../Panel/SidePanel';
-import { MOCK_POSTS } from '../../data/mockPosts';
+// import { MOCK_POSTS } from '../../data/mockPosts'; // Removed
+import { supabase } from '../../services/supabaseClient';
+import { dbPostToFeature } from '../../utils/mapUtils';
 import './AppLayout.css';
 
 const AppLayout = () => {
@@ -12,7 +14,39 @@ const AppLayout = () => {
         general: true,
         found: true
     });
-    const [visiblePosts, setVisiblePosts] = React.useState([]);
+
+    const [allFeatures, setAllFeatures] = React.useState([]); // All posts as features
+    const [visiblePosts, setVisiblePosts] = React.useState([]); // Posts in current view/filter
+    const [currentBounds, setCurrentBounds] = React.useState(null);
+
+    // Fetch Posts
+    const fetchPosts = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('posts')
+                .select('*')
+                .eq('status', 'published')
+                .order('created_at', { ascending: false })
+                .limit(500); // MVP limit
+
+            if (error) {
+                console.error("Error fetching posts:", error);
+                return;
+            }
+
+            if (data) {
+                const features = data.map(dbPostToFeature);
+                setAllFeatures(features);
+            }
+        } catch (e) {
+            console.error("Fetch exception:", e);
+        }
+    };
+
+    // Initial Fetch
+    React.useEffect(() => {
+        fetchPosts();
+    }, []);
 
     const handleFilterToggle = (id) => {
         setFilters(prev => ({ ...prev, [id]: !prev[id] }));
@@ -26,60 +60,59 @@ const AppLayout = () => {
 
     const handleBoundsChange = (bounds) => {
         if (!bounds) return;
+        setCurrentBounds(bounds);
+    };
 
-        // Simple client-side bounds check on MOCK_POSTS
-        const visible = MOCK_POSTS.features.filter(p => {
+    // Effect to update visiblePosts and expose map center
+    React.useEffect(() => {
+        if (!currentBounds) return;
+
+        // 1. Filter allFeatures based on filters AND bounds
+        const visible = allFeatures.filter(p => {
             const [lng, lat] = p.geometry.coordinates;
-            // Check Filters (optional here if we want list to match map immediately)
-            // Ideally we match map filters.
+            // Check Category Filter
             if (!filters[p.properties.category]) return false;
 
+            // Check Bounds
             return (
-                lng >= bounds._sw.lng &&
-                lng <= bounds._ne.lng &&
-                lat >= bounds._sw.lat &&
-                lat <= bounds._ne.lat
+                lng >= currentBounds._sw.lng &&
+                lng <= currentBounds._ne.lng &&
+                lat >= currentBounds._sw.lat &&
+                lat <= currentBounds._ne.lat
             );
         });
 
-        // Sort by timestamp desc (newest first)
-        // Mock data timestamps are ISO strings
-        visible.sort((a, b) => new Date(b.properties.timestamp) - new Date(a.properties.timestamp));
-
         setVisiblePosts(visible);
+
+        // Update global map center for composer
+        window.currentMapCenter = {
+            lng: (currentBounds._ne.lng + currentBounds._sw.lng) / 2,
+            lat: (currentBounds._ne.lat + currentBounds._sw.lat) / 2
+        };
+
+    }, [filters, currentBounds, allFeatures]);
+
+
+    // Derived prop for MapContainer: Just the filtered features for the whole world
+    // MapContainer will render them all, maplibre handles viewport clipping.
+    // We only filter by CATEGORY for the map source.
+    const mapFeatures = React.useMemo(() => {
+        return allFeatures.filter(f => filters[f.properties.category]);
+    }, [allFeatures, filters]);
+
+    const postsCollection = {
+        type: 'FeatureCollection',
+        features: mapFeatures
     };
-
-    // Re-filter when filters change using current visiblePosts is hard without bounds.
-    // For MVP, we wait for next move or we just filter the *currently* visible posts?
-    // Better: We need to know current bounds. 
-    // Let's just rely on MapContainer triggering 'moveend' or us triggering it?
-    // Actually, `MapContainer` filtering handles the MAP. 
-    // The LIST needs to be consistent. 
-    // Limit: List only updates on map move for now. 
-    // (To fix: store bounds in state, re-run filter in useEffect).
-
-    const [currentBounds, setCurrentBounds] = React.useState(null);
-
-    React.useEffect(() => {
-        if (currentBounds) {
-            handleBoundsChange(currentBounds);
-            // HACK: Store center globally for Composer availability (easier than prop drilling 4 layers for MVP)
-            // Ideally use Context or separate MapState
-            window.currentMapCenter = {
-                lng: (currentBounds._ne.lng + currentBounds._sw.lng) / 2,
-                lat: (currentBounds._ne.lat + currentBounds._sw.lat) / 2
-            };
-        }
-    }, [filters, currentBounds]);
-
 
     return (
         <div className="app-layout">
             <div className="map-wrapper">
                 <MapContainer
                     flyToLocation={flyToLocation}
-                    filters={filters}
-                    onBoundsChange={setCurrentBounds}
+                    // filters={filters} // MapContainer doesn't need filters anymore if we pass filtered data
+                    postsData={postsCollection} // Pass real data
+                    onBoundsChange={handleBoundsChange}
                 />
             </div>
             <SidePanel
@@ -87,6 +120,7 @@ const AppLayout = () => {
                 filters={filters}
                 onFilterToggle={handleFilterToggle}
                 visiblePosts={visiblePosts}
+                onPostSuccess={fetchPosts} // Trigger refresh on post
             />
         </div>
     );

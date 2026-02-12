@@ -5,7 +5,7 @@ import Feed from '../Feed/Feed';
 import Composer from '../Composer/Composer';
 import './SidePanel.css';
 
-const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts }) => {
+const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, onPostSuccess }) => {
     const [isComposing, setIsComposing] = useState(false);
 
     const handlePostSubmit = async (data) => {
@@ -33,7 +33,7 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts }) 
             if (response.ok) {
                 console.log("Post created!");
                 setIsComposing(false);
-                // Trigger refresh?
+                if (onPostSuccess) onPostSuccess();
             } else {
                 console.error("Post failed");
             }

@@ -2,9 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './MapContainer.css';
-import { MOCK_POSTS } from '../../data/mockPosts';
 
-const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
+const MapContainer = ({ flyToLocation, postsData, onBoundsChange }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -18,7 +17,7 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
 
     // 1. Initialize Map
     useEffect(() => {
-        if (map.current) return; // initialize only once
+        if (map.current) return;
         if (!API_KEY) return;
 
         map.current = new maplibregl.Map({
@@ -42,15 +41,14 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
                 console.error("Failed to load marker images:", e);
             }
 
-            // Add Source
+            // Add Source with empty or initial data
             map.current.addSource('posts', {
                 type: 'geojson',
-                data: MOCK_POSTS,
+                data: postsData || { type: 'FeatureCollection', features: [] },
                 cluster: true,
                 clusterMaxZoom: 14,
                 clusterRadius: 50,
                 clusterProperties: {
-                    // Keep track of categories in cluster
                     'positive': ['+', ['case', ['==', ['get', 'category'], 'positive'], 1, 0]],
                     'rant': ['+', ['case', ['==', ['get', 'category'], 'rant'], 1, 0]],
                     'general': ['+', ['case', ['==', ['get', 'category'], 'general'], 1, 0]],
@@ -58,7 +56,7 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
                 }
             });
 
-            // 1. Cluster Circles
+            // Layers (same as before)
             map.current.addLayer({
                 id: 'clusters',
                 type: 'circle',
@@ -71,7 +69,7 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
                         ['==', ['get', 'rant'], ['get', 'point_count']], '#f43f5e',
                         ['==', ['get', 'general'], ['get', 'point_count']], '#3b82f6',
                         ['==', ['get', 'found'], ['get', 'point_count']], '#eab308',
-                        '#94a3b8' // mixed/neutral
+                        '#94a3b8'
                     ],
                     'circle-radius': 20,
                     'circle-stroke-width': 2,
@@ -79,7 +77,6 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
                 }
             });
 
-            // 2. Cluster Counts
             map.current.addLayer({
                 id: 'cluster-count',
                 type: 'symbol',
@@ -90,12 +87,9 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
                     'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
                     'text-size': 12,
                 },
-                paint: {
-                    'text-color': '#ffffff'
-                }
+                paint: { 'text-color': '#ffffff' }
             });
 
-            // 3. Unclustered Points (Now using Icons)
             map.current.addLayer({
                 id: 'unclustered-point',
                 type: 'symbol',
@@ -121,32 +115,23 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
                 const bounds = map.current.getBounds();
                 if (onBoundsChange) onBoundsChange(bounds);
             });
-
-            // Initial bounds
             if (onBoundsChange) onBoundsChange(map.current.getBounds());
 
             setIsMapLoaded(true);
         });
 
-        // 4. Interactions
+        // Interactions
         map.current.on('click', 'clusters', (e) => {
             const features = map.current.queryRenderedFeatures(e.point, { layers: ['clusters'] });
             const clusterId = features[0].properties.cluster_id;
             map.current.getSource('posts').getClusterExpansionZoom(clusterId, (err, zoom) => {
                 if (err) return;
-                map.current.easeTo({
-                    center: features[0].geometry.coordinates,
-                    zoom: zoom
-                });
+                map.current.easeTo({ center: features[0].geometry.coordinates, zoom: zoom });
             });
         });
 
-        map.current.on('mouseenter', 'clusters', () => {
-            map.current.getCanvas().style.cursor = 'pointer';
-        });
-        map.current.on('mouseleave', 'clusters', () => {
-            map.current.getCanvas().style.cursor = '';
-        });
+        map.current.on('mouseenter', 'clusters', () => map.current.getCanvas().style.cursor = 'pointer');
+        map.current.on('mouseleave', 'clusters', () => map.current.getCanvas().style.cursor = '');
 
         map.current.on('click', 'unclustered-point', (e) => {
             const feature = e.features[0];
@@ -160,16 +145,13 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
             });
         });
 
-        map.current.on('mouseleave', 'unclustered-point', () => {
-            map.current.getCanvas().style.cursor = '';
-        });
+        map.current.on('mouseleave', 'unclustered-point', () => map.current.getCanvas().style.cursor = '');
 
-    }, []); // Run only once on mount
+    }, []);
 
     // 2. FlyTo Effect
     useEffect(() => {
         if (!map.current || !flyToLocation) return;
-
         map.current.flyTo({
             center: flyToLocation.center,
             zoom: flyToLocation.zoom || 14,
@@ -179,22 +161,11 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
         });
     }, [flyToLocation]);
 
-    // 3. Filter Effect
+    // 3. Data Update Effect
     useEffect(() => {
-        if (!isMapLoaded || !map.current || !map.current.getSource('posts')) return;
-
-        const filteredFeatures = MOCK_POSTS.features.filter(f => {
-            const cat = f.properties.category;
-            return filters[cat];
-        });
-
-        const filteredData = {
-            type: 'FeatureCollection',
-            features: filteredFeatures
-        };
-
-        map.current.getSource('posts').setData(filteredData);
-    }, [filters, isMapLoaded]);
+        if (!isMapLoaded || !map.current || !map.current.getSource('posts') || !postsData) return;
+        map.current.getSource('posts').setData(postsData);
+    }, [postsData, isMapLoaded]);
 
     // 4. Resize Logic
     useEffect(() => {
@@ -209,12 +180,10 @@ const MapContainer = ({ flyToLocation, filters, onBoundsChange }) => {
         };
 
         window.addEventListener('resize', handleResize);
-        // We might want to call handleResize once map is loaded
         if (isMapLoaded) handleResize();
 
         return () => window.removeEventListener('resize', handleResize);
     }, [isMapLoaded]);
-    // Added isMapLoaded dependency so it runs once map is ready too 
 
     if (!API_KEY) return <div className="map-error">Pending Configuration...</div>;
 
