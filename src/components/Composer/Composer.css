@@ -6,7 +6,7 @@
     /* height: auto; */
     max-height: 80vh;
     border-top: 1px solid var(--glass-border);
-    background: #0f172a;
+    background: var(--color-bg);
     /* Solid fallback or strong glass */
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(20px);

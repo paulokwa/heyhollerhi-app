@@ -17,9 +17,24 @@ export const handler = async (event, context) => {
     try {
         const { category, content, foundData, location, author_id } = JSON.parse(event.body);
 
+        // 0. Extract & Normalize IP
+        // Netlify / AWS Lambda headers
+        const clientIp = event.headers['x-nf-client-connection-ip'] || event.headers['client-ip'] || '0.0.0.0';
+
         // 1. Validation (Basic)
         if (!category || !location) {
             return { statusCode: 400, body: 'Missing required fields' };
+        }
+
+        // Safety: Profanity Filter (Basic MVP)
+        const badWords = ['badword1', 'badword2']; // TODO: Expand or use library
+        if (content && badWords.some(w => content.toLowerCase().includes(w))) {
+            return { statusCode: 400, body: 'Content contains inappropriate language.' };
+        }
+
+        // Safety: Length Limit
+        if (content && content.length > 280) {
+            return { statusCode: 400, body: 'Content exceeds 280 characters.' };
         }
 
         // Enforce Found-Only Policy
@@ -29,6 +44,74 @@ export const handler = async (event, context) => {
         if (category !== 'found' && !content) {
             return { statusCode: 400, body: 'Content required for this category.' };
         }
+
+        // --- RATE LIMITING START ---
+
+        // Configuration
+        const LIMITS = {
+            positive: { cooldownMin: 5, dailyCap: 10, sharedCapGroup: 'pos_gen' },
+            general: { cooldownMin: 5, dailyCap: 10, sharedCapGroup: 'pos_gen' },
+            rant: { cooldownMin: 30, dailyCap: 3 },
+            found: { cooldownMin: 15, dailyCap: 5 }
+        };
+        const config = LIMITS[category] || LIMITS.general;
+
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+        // A. Check Cooldown (Last post by IP in this category)
+        const cooldownTime = new Date(now.getTime() - config.cooldownMin * 60 * 1000);
+
+        const { data: lastPost, error: lastPostError } = await supabase
+            .from('posts')
+            .select('created_at')
+            .eq('author_ip', clientIp)
+            .eq('category', category)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (lastPost && !lastPostError) {
+            const lastPostTime = new Date(lastPost.created_at);
+            if (lastPostTime > cooldownTime) {
+                const nextAvailable = new Date(lastPostTime.getTime() + config.cooldownMin * 60 * 1000);
+                const waitSeconds = Math.ceil((nextAvailable - now) / 1000);
+                return {
+                    statusCode: 429,
+                    body: JSON.stringify({
+                        error: `Cooling down! Wait ${Math.ceil(waitSeconds / 60)}m.`,
+                        retryAfter: waitSeconds,
+                        nextAvailable: nextAvailable.toISOString()
+                    })
+                };
+            }
+        }
+
+        // B. Check Daily Cap
+        // If shared group (Positive+General), count both
+        let capQuery = supabase
+            .from('posts')
+            .select('id', { count: 'exact' })
+            .eq('author_ip', clientIp)
+            .gte('created_at', oneDayAgo.toISOString());
+
+        if (config.sharedCapGroup === 'pos_gen') {
+            capQuery = capQuery.in('category', ['positive', 'general']);
+        } else {
+            capQuery = capQuery.eq('category', category);
+        }
+
+        const { count, error: capError } = await capQuery;
+
+        if (count >= config.dailyCap) {
+            return {
+                statusCode: 429,
+                body: JSON.stringify({ error: `Daily limit reached for ${category} posts.` })
+            };
+        }
+
+        // --- RATE LIMITING END ---
+
 
         // 2. Fuzz Location (Simple Random Offset)
         // 0.001 deg is roughly 111 meters. 
@@ -70,7 +153,8 @@ export const handler = async (event, context) => {
                     found_business_type: foundData?.businessType,
                     location_geog: `POINT(${fuzzedLng} ${fuzzedLat})`,
                     status: 'published',
-                    author_user_id: finalUserId
+                    author_user_id: finalUserId,
+                    author_ip: clientIp // Track IP
                 }
             ])
             .select();

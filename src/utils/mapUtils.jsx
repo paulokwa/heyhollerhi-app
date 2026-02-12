@@ -70,3 +70,36 @@ export const loadMarkerImages = async (map) => {
         map.addImage(`marker-${cat}`, bitmap); // SDF false, we bake color in.
     }
 };
+
+export const dbPostToFeature = (post) => {
+    // Parse location_geog "POINT(lng lat)"
+    // If it's null/undefined, skip or use 0,0
+    let coordinates = [0, 0];
+    if (post.location_geog) {
+        // Simple regex to extract coordinates
+        const match = post.location_geog.match(/POINT\(([-\d\.]+) ([-\d\.]+)\)/);
+        if (match) {
+            coordinates = [parseFloat(match[1]), parseFloat(match[2])];
+        } else if (typeof post.location_geog === 'string') {
+            // Handle "POINT(lng lat)" or other formats if needed
+            // For now assume WKT from Supabase PostGIS
+        }
+    }
+
+    return {
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: coordinates
+        },
+        properties: {
+            id: post.id,
+            category: post.category,
+            content: post.text_content, // Map 'text_content' to 'content' for UI
+            timestamp: post.created_at,
+            // Add other fields as needed
+            author_id: post.author_user_id,
+            found_item_type: post.found_item_type
+        }
+    };
+};
