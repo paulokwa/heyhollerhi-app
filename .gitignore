@@ -27,5 +27,3 @@ dist-ssr
 .netlify
 .env
 .env.*
-debug-env.js
-test-supabase-connection.js
