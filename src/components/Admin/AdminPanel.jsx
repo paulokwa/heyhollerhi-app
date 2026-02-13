@@ -79,6 +79,8 @@ const AdminPanel = () => {
                 <form onSubmit={handleLogin}>
                     <input
                         type="password"
+                        id="adminSecret"
+                        name="adminSecret"
                         value={secret}
                         onChange={e => setSecret(e.target.value)}
                         placeholder="Enter Admin Secret"

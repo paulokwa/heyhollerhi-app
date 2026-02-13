@@ -4,7 +4,7 @@ import { Heart, MessageCircle, AlertTriangle, Check, MapPin } from 'lucide-react
 import './Feed.css';
 
 const PostItem = ({ post }) => {
-    const { category, content, author_alias, timestamp, subtype } = post.properties;
+    const { category, content, author_alias, timestamp, subtype, location_label } = post.properties;
     const color = getCategoryColor(category);
 
     let Icon = MapPin;
@@ -19,6 +19,12 @@ const PostItem = ({ post }) => {
                 <span className="post-alias" style={{ color: color }}>{author_alias}</span>
                 <span className="post-time">{new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
+            {location_label && (
+                <div className="post-location" style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MapPin size={12} />
+                    <span>{location_label}</span>
+                </div>
+            )}
             {content && <p className="post-content">{content}</p>}
             {category === 'found' && (
                 <div className="found-badge" style={{ backgroundColor: color }}>

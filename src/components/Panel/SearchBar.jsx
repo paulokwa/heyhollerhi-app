@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
+import { searchLocation } from '../../services/geocodingService';
 import './SearchBar.css';
 
 const SearchBar = ({ onLocationSelect }) => {
@@ -14,9 +15,8 @@ const SearchBar = ({ onLocationSelect }) => {
         setLoading(true);
 
         try {
-            const response = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=${API_KEY}`);
-            const data = await response.json();
-            setResults(data.features || []);
+            const features = await searchLocation(query);
+            setResults(features);
         } catch (err) {
             console.error("Geocoding failed", err);
         } finally {
@@ -38,6 +38,8 @@ const SearchBar = ({ onLocationSelect }) => {
                 <Search className="search-icon" size={18} />
                 <input
                     type="text"
+                    id="searchLocation"
+                    name="searchLocation"
                     placeholder="Search location..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}

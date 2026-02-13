@@ -15,20 +15,24 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, on
 
     const handlePostSubmit = async (data) => {
         try {
-            // Get location from where? Ideally the map center or user location?
-            // For now, let's assume we want to post at the current Map center (which we don't have access to here easily)
-            // OR we pass it in. 
-            // BETTER: Composer should ask for location or use current map center. 
-            // Let's grab it from a prop or context.
-            // Simplified: We'll fake the location as the last flyToLocation or we need to pass `mapCenter` to SidePanel.
-            // This is a missing connect. 
-            // For this step, I'll validly log it, but we need to wire up map center. 
-            // I'll update AppLayout to pass `mapCenter`.
-            console.log("Submitting to Netlify...", data);
+            // Transform MapTiler feature to { lat, lng, label }
+            const feature = data.location;
+            const coords = feature?.center || feature?.geometry?.coordinates || [0, 0];
+
+            const locationPayload = {
+                lng: parseFloat(coords[0]) || 0,
+                lat: parseFloat(coords[1]) || 0,
+                label: feature?.place_name || feature?.text || "Unknown Location"
+            };
+
+            console.log("Submitting to Netlify...", { ...data, location: locationPayload });
 
             const response = await fetch('/.netlify/functions/createPost', {
                 method: 'POST',
-                body: JSON.stringify({ ...data, location: window.currentMapCenter || { lat: 0, lng: 0 } }), // HACK for now
+                body: JSON.stringify({
+                    ...data,
+                    location: locationPayload
+                }),
                 headers: {
                     'Content-Type': 'application/json'
                 }

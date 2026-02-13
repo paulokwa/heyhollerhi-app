@@ -15,7 +15,10 @@ export const handler = async (event, context) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     try {
+        console.log("CreatePost Invoked. Body length:", event.body.length);
         const { category, content, foundData, location, author_id } = JSON.parse(event.body);
+
+        console.log("Parsed Payload Location:", location);
 
         // 0. Extract & Normalize IP
         // Netlify / AWS Lambda headers
@@ -23,8 +26,16 @@ export const handler = async (event, context) => {
 
         // 1. Validation (Basic)
         if (!category || !location) {
+            console.error("Missing required fields");
             return { statusCode: 400, body: 'Missing required fields' };
         }
+
+        // Validate Coordinates
+        if (typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+            console.error("Invalid coordinates types:", typeof location.lat, typeof location.lng);
+            return { statusCode: 400, body: 'Invalid coordinates' };
+        }
+
 
         // Safety: Profanity Filter (Basic MVP)
         const badWords = ['badword1', 'badword2']; // TODO: Expand or use library
@@ -117,8 +128,20 @@ export const handler = async (event, context) => {
         // 0.001 deg is roughly 111 meters. 
         // Fuzzing by +/- 0.002 deg (~200m radius box)
         const fuzzFactor = 0.002;
-        const fuzzedLat = location.lat + (Math.random() * fuzzFactor * 2 - fuzzFactor);
-        const fuzzedLng = location.lng + (Math.random() * fuzzFactor * 2 - fuzzFactor);
+        let lat = Number(location.lat);
+        let lng = Number(location.lng);
+
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error("NaN Coordinates detected:", location);
+            return { statusCode: 400, body: 'Invalid coordinates' };
+        }
+
+        const fuzzedLat = lat + (Math.random() * fuzzFactor * 2 - fuzzFactor);
+        const fuzzedLng = lng + (Math.random() * fuzzFactor * 2 - fuzzFactor);
+
+        // Ensure proper formatting for WKT
+        const wkt = `POINT(${fuzzedLng.toFixed(6)} ${fuzzedLat.toFixed(6)})`;
+        console.log("Generated WKT:", wkt);
 
         // 3. Insert into DB (Status Published for MVP)
         // PostGIS Point format: SRID 4326 (WGS 84)
@@ -151,7 +174,9 @@ export const handler = async (event, context) => {
                     found_datetime: foundData?.date,
                     found_disposition: foundData?.disposition,
                     found_business_type: foundData?.businessType,
-                    location_geog: `POINT(${fuzzedLng} ${fuzzedLat})`,
+                    location_geog: wkt,
+                    location_label: location.label,
+                    location_precision_m: 200,
                     status: 'published',
                     author_user_id: finalUserId,
                     author_ip: clientIp // Track IP

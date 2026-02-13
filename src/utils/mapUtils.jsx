@@ -83,18 +83,89 @@ export const loadMarkerImages = async (map) => {
     }
 };
 
+// Helper to parse PostGIS HEX WKB string for Point geometry
+const parseHexWKB = (hex) => {
+    try {
+        if (!hex || typeof hex !== 'string') return null;
+
+        // Remove 0x prefix if present
+        const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+
+        // Basic validation: must start with 01 (little endian) and have correct length for point (21 bytes = 42 hex chars)
+        // Actually EWKB for Point with SRID is 25 bytes (1 byte order + 4 type + 4 SRID + 16 coords) = 50 hex chars
+        // The logs showed: 0101000020E6100000... which is EWKB.
+
+        // We need a DataView to parse binary data
+        // Convert hex to Uint8Array
+        const updatedHexString = cleanHex.length % 2 !== 0 ? '0' + cleanHex : cleanHex;
+        const buffer = new Uint8Array(updatedHexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16))).buffer;
+        const view = new DataView(buffer);
+
+        // Byte 0: Endianness (1 = Little Endian)
+        const categories = view.getUint8(0);
+        const littleEndian = categories === 1;
+
+        // Bytes 1-4: Geometry Type
+        const type = view.getUint32(1, littleEndian);
+
+        // Check for SRID flag (0x20000000)
+        // If type & 0x20000000 is set, then converting as uint32 might be tricky with masks in JS, 
+        // but let's just look at offsets.
+        // In EWKB:
+        // Byte 0: Order
+        // Byte 1-4: Type (e.g., 0x20000001 for Point with SRID)
+        // Byte 5-8: SRID (if present)
+        // Byte 9-24: X
+        // Byte 25-40: Y
+
+        let offset = 5;
+
+        // Check if SRID is present (EWKB uses a flag in type, usually 0x20000000)
+        // Or if it's just standard WKB.
+        // The logged string "0101000020" -> 01 (order) 01000020 (type).
+        // 0x20000001 (Little Endian read of 01000020 is 0x20000001).
+
+        if (type & 0x20000000) {
+            // SRID present, skip 4 bytes
+            offset += 4;
+        }
+
+        const x = view.getFloat64(offset, littleEndian);
+        const y = view.getFloat64(offset + 8, littleEndian);
+
+        return [x, y];
+
+    } catch (e) {
+        console.warn("WKB Parse error", e);
+        return null; // Fail gracefully
+    }
+};
+
 export const dbPostToFeature = (post) => {
-    // Parse location_geog "POINT(lng lat)"
-    // If it's null/undefined, skip or use 0,0
+    // Parse location_geog
     let coordinates = [0, 0];
-    if (post.location_geog) {
-        // Simple regex to extract coordinates
-        const match = post.location_geog.match(/POINT\(([-\d\.]+) ([-\d\.]+)\)/);
-        if (match) {
-            coordinates = [parseFloat(match[1]), parseFloat(match[2])];
-        } else if (typeof post.location_geog === 'string') {
-            // Handle "POINT(lng lat)" or other formats if needed
-            // For now assume WKT from Supabase PostGIS
+    const loc = post.location_geog;
+
+    if (loc) {
+        if (typeof loc === 'object' && loc.coordinates) {
+            // Handle GeoJSON (Supabase sometimes returns this)
+            coordinates = loc.coordinates;
+        } else if (typeof loc === 'string') {
+            if (loc.startsWith('POINT')) {
+                // Handle WKT "POINT(lng lat)"
+                const match = loc.match(/POINT\(([-\d\.]+) ([-\d\.]+)\)/);
+                if (match) {
+                    coordinates = [parseFloat(match[1]), parseFloat(match[2])];
+                }
+            } else {
+                // Try Hex WKB
+                const parsed = parseHexWKB(loc);
+                if (parsed) {
+                    coordinates = parsed;
+                } else {
+                    console.warn("mapUtils: Failed to parse location:", loc, "Post ID:", post.id);
+                }
+            }
         }
     }
 
@@ -106,12 +177,13 @@ export const dbPostToFeature = (post) => {
         },
         properties: {
             id: post.id,
-            category: post.category,
+            category: post.category || 'general',
             content: post.text_content, // Map 'text_content' to 'content' for UI
             timestamp: post.created_at,
             // Add other fields as needed
             author_id: post.author_user_id,
-            found_item_type: post.found_item_type
+            found_item_type: post.found_item_type,
+            location_label: post.location_label // Pass label to UI
         }
     };
 };
