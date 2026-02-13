@@ -41,7 +41,7 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, on
             if (response.ok) {
                 console.log("Post created!");
                 setIsComposing(false);
-                if (onPostSuccess) onPostSuccess();
+                if (onPostSuccess) onPostSuccess(feature);
             } else if (response.status === 429) {
                 const err = await response.json();
                 alert(err.error || "You're posting too fast! Take a breather.");

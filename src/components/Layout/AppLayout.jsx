@@ -133,6 +133,33 @@ const AppLayout = () => {
         features: mapFeatures
     };
 
+    const handlePostCreated = async (locationFeature) => {
+        await fetchPosts(); // Re-fetch
+
+        if (locationFeature && locationFeature.center) {
+            const [lng, lat] = locationFeature.center;
+
+            // Check if inside currentBounds
+            let isInside = false;
+            if (currentBounds) {
+                isInside = (
+                    lng >= currentBounds._sw.lng &&
+                    lng <= currentBounds._ne.lng &&
+                    lat >= currentBounds._sw.lat &&
+                    lat <= currentBounds._ne.lat
+                );
+            }
+
+            // Only fly if NOT inside (or if no bounds yet)
+            // User requested: "if its already in the view port then no need to zoom"
+            if (!isInside) {
+                setFlyToLocation({ center: locationFeature.center, zoom: 14 });
+                // If we fly specified by post, we should probably clear search bounds to ensure we see it
+                setSearchBounds(null);
+            }
+        }
+    };
+
     return (
         <div className="app-layout">
             <div className="map-wrapper">
@@ -148,7 +175,7 @@ const AppLayout = () => {
                 filters={filters}
                 onFilterToggle={handleFilterToggle}
                 visiblePosts={visiblePosts}
-                onPostSuccess={fetchPosts} // Trigger refresh on post
+                onPostSuccess={handlePostCreated} // Trigger refresh and zoom
             />
         </div>
     );
