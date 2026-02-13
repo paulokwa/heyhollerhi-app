@@ -111,11 +111,14 @@ const MapContainer = ({ flyToLocation, postsData, onBoundsChange }) => {
             });
 
             // Report Bounds
-            map.current.on('moveend', () => {
+            map.current.on('moveend', (e) => {
                 const bounds = map.current.getBounds();
-                if (onBoundsChange) onBoundsChange(bounds);
+                const userInitiated = !!e.originalEvent; // True if triggered by user input (mouse/touch/keyboard)
+                if (onBoundsChange) onBoundsChange(bounds, userInitiated);
             });
-            if (onBoundsChange) onBoundsChange(map.current.getBounds());
+
+            // Initial bounds report (programmatic)
+            if (onBoundsChange) onBoundsChange(map.current.getBounds(), false);
 
             setIsMapLoaded(true);
         });
