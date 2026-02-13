@@ -60,14 +60,26 @@ export const getMarkerImage = (category) => {
 export const loadMarkerImages = async (map) => {
     const categories = ['positive', 'rant', 'general', 'found', 'default'];
 
+    const loadImage = (url) => {
+        return new Promise((resolve, reject) => {
+            // Create an HTMLImageElement
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = (e) => reject(e);
+            img.src = url;
+        });
+    };
+
     for (const cat of categories) {
         if (map.hasImage(`marker-${cat}`)) continue;
 
-        const url = getMarkerImage(cat);
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const bitmap = await createImageBitmap(blob);
-        map.addImage(`marker-${cat}`, bitmap); // SDF false, we bake color in.
+        try {
+            const url = getMarkerImage(cat);
+            const image = await loadImage(url);
+            map.addImage(`marker-${cat}`, image);
+        } catch (error) {
+            console.error(`Failed to load marker image for ${cat}:`, error);
+        }
     }
 };
 

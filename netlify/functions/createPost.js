@@ -173,7 +173,11 @@ export const handler = async (event, context) => {
         console.error('Error creating post:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: error.message }),
+            body: JSON.stringify({
+                error: error.message,
+                details: error.toString(),
+                stack: error.stack
+            }),
         };
     }
 };
