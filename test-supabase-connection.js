@@ -2,6 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
 
 // Load .env
 if (fs.existsSync('.env')) {
@@ -23,34 +25,66 @@ if (!supabaseUrl || !supabaseKey) {
     process.exit(1);
 }
 
-if (!supabaseKey.startsWith('ey')) {
-    console.warn('WARNING: The key does NOT start with "ey". This is likely an invalid key format for Supabase (which uses JWTs).');
-}
-
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function testConnection() {
+    console.log('--- 1. Raw Network Test ---');
     try {
-        console.log('Attempting to fetch 1 post...');
-        // Set a timeout to fail faster than default
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Manual Timeout: Connection took too long')), 5000));
+        const start = Date.now();
+        console.log(`Fetching ${supabaseUrl}...`);
+        const res = await fetch(supabaseUrl);
+        console.log(`[PASS] Raw fetch status: ${res.status} (${Date.now() - start}ms)`);
+    } catch (e) {
+        console.error(`[FAIL] Raw fetch failed: ${e.message}`);
+        console.error('This indicates a general Node.js networking issue (Firewall/VPN/Proxy).');
+        return; // Exit if basic network fails
+    }
 
-        const fetchPromise = supabase
-            .from('posts')
-            .select('count', { count: 'exact', head: true });
+    // console.log('\n--- 2. Supabase Client Test ---');
+    // try {
+    //     console.log('Attempting to fetch 1 post...');
+    //     // Set a timeout to fail faster than default
+    //     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Manual Timeout: Connection took too long')), 5000));
 
-        const { count, error } = await Promise.race([fetchPromise, timeoutPromise]);
+    //     const fetchPromise = supabase
+    //         .from('posts')
+    //         .select('count', { count: 'exact', head: true });
 
-        if (error) {
-            console.error('CONNECTION FAILED:', error.message);
-            console.error('Full Error:', error);
+    //     const { count, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
+    //     if (error) {
+    //         console.error('CONNECTION FAILED:', error.message);
+    //         console.error('Full Error:', error);
+    //     } else {
+    //         console.log('SUCCESS! Connected to Supabase.');
+    //         console.log(`Total posts count: ${count}`);
+    //     }
+    // } catch (err) {
+    //     console.error('CRITICAL ERROR:', err.message);
+    // }
+
+    console.log('\n--- 3. Manual Authenticated Fetch Test ---');
+    try {
+        const url = `${supabaseUrl}/rest/v1/posts?select=count&limit=1`;
+        console.log(`Fetching ${url}...`);
+        const res = await fetch(url, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        console.log(`Status: ${res.status} ${res.statusText}`);
+        if (!res.ok) {
+            const text = await res.text();
+            console.log('Body:', text);
         } else {
-            console.log('SUCCESS! Connected to Supabase.');
-            console.log(`Total posts count: ${count}`);
+            console.log('Manual auth fetch PASSED.');
         }
-    } catch (err) {
-        console.error('CRITICAL ERROR:', err.message);
+    } catch (e) {
+        console.error('Manual fetch FAILED:', e.message);
     }
 }
 
-testConnection();
+(async () => {
+    await testConnection();
+})();
