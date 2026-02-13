@@ -44,6 +44,9 @@
     font-size: 0.95rem;
     margin-bottom: 10px;
     line-height: 1.4;
+    word-break: break-word;
+    /* Prevents overflow */
+    overflow-wrap: break-word;
 }
 
 .post-footer {

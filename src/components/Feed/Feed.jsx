@@ -16,24 +16,34 @@ const PostItem = ({ post }) => {
     return (
         <div className="post-card glass-panel" style={{ borderLeftColor: color }}>
             <div className="post-header">
-                <span className="post-alias" style={{ color: color }}>{author_alias}</span>
-                <span className="post-time">{new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                {location_label ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '0.85rem', color: '#e2e8f0' }}>
+                        <MapPin size={12} />
+                        <span>{location_label}</span>
+                    </div>
+                ) : (
+                    <span></span>
+                )}
+                <span className="post-time">
+                    {new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}, {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
             </div>
-            {location_label && (
-                <div className="post-location" style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <MapPin size={12} />
-                    <span>{location_label}</span>
-                </div>
-            )}
+
             {content && <p className="post-content">{content}</p>}
+
             {category === 'found' && (
                 <div className="found-badge" style={{ backgroundColor: color }}>
                     <Icon size={12} color="white" />
                     <span>Found Item</span>
                 </div>
             )}
-            <div className="post-footer">
-                <span className="post-category">{category} {subtype ? `• ${subtype}` : ''}</span>
+
+            <div className="post-footer" style={{ justifyContent: 'space-between', marginTop: '10px' }}>
+                <div className="post-category-badge" style={{ color: color, display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>
+                    <Icon size={14} />
+                    <span>{category} {subtype ? `• ${subtype}` : ''}</span>
+                </div>
+                <span className="post-alias" style={{ color: color, fontSize: '0.75rem', opacity: 0.8 }}>{author_alias}</span>
             </div>
         </div>
     );

@@ -185,17 +185,27 @@ const Composer = ({ onClose, onSubmit }) => {
                             )}
 
                             {category !== 'found' ? (
-                                <textarea
-                                    className="composer-input"
-                                    id="postContent"
-                                    name="postContent"
-                                    placeholder={category === 'rant' ? "Vent safely..." : "What's happening?"}
-                                    value={text}
-                                    onChange={e => setText(e.target.value)}
-                                    maxLength={280}
-                                    rows={6}
-                                    autoFocus
-                                />
+                                <>
+                                    <textarea
+                                        className="composer-input"
+                                        id="postContent"
+                                        name="postContent"
+                                        placeholder={category === 'rant' ? "Vent safely..." : "What's happening?"}
+                                        value={text}
+                                        onChange={e => setText(e.target.value)}
+                                        maxLength={280}
+                                        rows={6}
+                                        autoFocus
+                                    />
+                                    <div className="char-count" style={{
+                                        textAlign: 'right',
+                                        fontSize: '0.75rem',
+                                        color: text.length > 250 ? '#f43f5e' : 'rgba(255,255,255,0.5)',
+                                        marginTop: '5px'
+                                    }}>
+                                        {280 - text.length} chars left
+                                    </div>
+                                </>
                             ) : (
                                 <div className="found-form">
                                     <div className="form-group">
