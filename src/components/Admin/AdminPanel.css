@@ -36,6 +36,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-radius: var(--radius-md);
     overflow: hidden;
+    table-layout: fixed;
 }
 
 .posts-table th,
@@ -44,12 +45,58 @@
     text-align: left;
     border-bottom: 1px solid var(--glass-border);
     color: var(--color-text-muted);
+    vertical-align: middle;
 }
 
 .posts-table th {
     color: var(--color-text-main);
     font-weight: 600;
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* Column Widths */
+.posts-table th:nth-child(1) {
+    width: 140px;
+}
+
+/* Time */
+.posts-table th:nth-child(2) {
+    width: 100px;
+}
+
+/* Status */
+.posts-table th:nth-child(3) {
+    width: 100px;
+}
+
+/* Category */
+.posts-table th:nth-child(4) {
+    width: auto;
+}
+
+/* Content - fluid */
+.posts-table th:nth-child(5) {
+    width: 140px;
+}
+
+/* IP */
+.posts-table th:nth-child(6) {
+    width: 180px;
+    text-align: right;
+}
+
+/* Actions */
+.posts-table td:nth-child(6) {
+    text-align: right;
+}
+
+/* Truncate Content Column */
+.posts-table td:nth-child(4) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0;
+    /* Required for table-layout: fixed to trigger ellipsis on fluid columns */
 }
 
 .status-removed {
