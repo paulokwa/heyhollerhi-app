@@ -133,8 +133,27 @@
     .view-toggle-btn:hover {
         background-color: rgba(255, 255, 255, 0.2);
     }
+
+    /* Carousel Mode Overrides - Mobile Only */
+    .side-panel.carousel-mode.expanded {
+        height: auto !important;
+        max-height: 85vh;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
 }
 
 .view-toggle-btn {
     display: none;
+}
+
+/* Ensure header text is tight */
+.panel-header h1 {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.panel-header .tagline {
+    margin: 0;
+    line-height: 1.2;
+    margin-top: 2px;
 }

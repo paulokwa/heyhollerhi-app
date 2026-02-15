@@ -59,7 +59,7 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, on
     };
 
     return (
-        <aside className={`side-panel glass-panel ${isExpanded ? 'expanded' : ''}`}>
+        <aside className={`side-panel glass-panel ${isExpanded ? 'expanded' : ''} ${viewMode === 'carousel' ? 'carousel-mode' : ''}`}>
             {/* Mobile Drag Handle */}
             <div className="mobile-handle-bar" onClick={toggleExpand}>
                 <div className="handle-pill"></div>
