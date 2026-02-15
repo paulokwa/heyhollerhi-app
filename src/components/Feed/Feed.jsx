@@ -1,6 +1,6 @@
 import React from 'react';
 import { getCategoryColor } from '../../utils/mapUtils';
-import { Heart, MessageCircle, AlertTriangle, Check, MapPin } from 'lucide-react';
+import { Heart, MessageCircle, AlertTriangle, Check, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import './Feed.css';
 
 const PostItem = ({ post }) => {
@@ -49,12 +49,45 @@ const PostItem = ({ post }) => {
     );
 };
 
-const Feed = ({ posts, mode }) => {
+const Feed = ({ posts, mode, viewMode = 'list' }) => {
+    const carouselRef = React.useRef(null);
+
+    const scrollCarousel = (direction) => {
+        if (carouselRef.current) {
+            const width = carouselRef.current.offsetWidth;
+            const scrollAmount = direction === 'next' ? width : -width;
+            carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    };
+
     if (posts.length === 0) {
         return (
             <div className="empty-feed">
                 <p>No posts in this area.</p>
                 <small>Be the first to share!</small>
+            </div>
+        );
+    }
+
+    if (viewMode === 'carousel') {
+        return (
+            <div className="feed-carousel-layout">
+                <div className="feed-carousel-track" ref={carouselRef}>
+                    {posts.map(post => (
+                        <div key={post.properties.id || Math.random()} className="carousel-item">
+                            <PostItem post={post} />
+                        </div>
+                    ))}
+                </div>
+                <div className="carousel-controls">
+                    <button className="carousel-btn" onClick={() => scrollCarousel('prev')} aria-label="Previous">
+                        <ChevronLeft size={24} />
+                    </button>
+                    <span className="carousel-indicator">{posts.length} posts</span>
+                    <button className="carousel-btn" onClick={() => scrollCarousel('next')} aria-label="Next">
+                        <ChevronRight size={24} />
+                    </button>
+                </div>
             </div>
         );
     }

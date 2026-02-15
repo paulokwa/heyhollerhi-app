@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AlignJustify, GalleryHorizontal } from 'lucide-react';
 import SearchBar from './SearchBar';
 import FilterBar from './FilterBar';
 import Feed from '../Feed/Feed';
@@ -8,6 +9,7 @@ import './SidePanel.css';
 const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, onPostSuccess }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'carousel'
 
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
@@ -66,13 +68,20 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, on
             <header className="panel-header">
                 <h1>Hey Holler Hi!</h1>
                 <p className="tagline">Local pulse, verified & vibes.</p>
+                <button
+                    className="view-toggle-btn mobile-only"
+                    onClick={() => setViewMode(prev => prev === 'list' ? 'carousel' : 'list')}
+                    aria-label="Toggle view"
+                >
+                    {viewMode === 'list' ? <GalleryHorizontal size={20} /> : <AlignJustify size={20} />}
+                </button>
             </header>
 
             <div className="panel-content">
                 <SearchBar onLocationSelect={onLocationSelect} />
                 <FilterBar filters={filters} onToggle={onFilterToggle} />
 
-                <Feed posts={visiblePosts || []} mode="explore" />
+                <Feed posts={visiblePosts || []} mode="explore" viewMode={viewMode} />
             </div>
 
             <footer className="panel-footer">
