@@ -124,8 +124,30 @@ const AppLayout = () => {
     // Derived prop for MapContainer: Just the filtered features for the whole world
     // MapContainer will render them all, maplibre handles viewport clipping.
     // We only filter by CATEGORY for the map source.
+    // Derived prop for MapContainer: Just the filtered features for the whole world
+    // We filter by CATEGORY first, then DEDUPLICATE by location (coordinates).
     const mapFeatures = React.useMemo(() => {
-        return allFeatures.filter(f => filters[f.properties.category]);
+        // 1. Filter by Category
+        const filtered = allFeatures.filter(f => filters[f.properties.category]);
+
+        // 2. Deduplicate by Location (keep the first/newest one seen)
+        const uniqueFeatures = [];
+        const seenLocations = new Set();
+
+        for (const feature of filtered) {
+            const [lng, lat] = feature.geometry.coordinates;
+            // Create a unique key for the location. 
+            // Using a high precision to ensure exact matches are grouped, but slight variations aren't.
+            // Coordinates from PostGIS are usually very precise.
+            const locationKey = `${lng},${lat}`;
+
+            if (!seenLocations.has(locationKey)) {
+                seenLocations.add(locationKey);
+                uniqueFeatures.push(feature);
+            }
+        }
+
+        return uniqueFeatures;
     }, [allFeatures, filters]);
 
     const postsCollection = {

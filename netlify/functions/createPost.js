@@ -67,6 +67,8 @@ export const handler = async (event, context) => {
         };
         const config = LIMITS[category] || LIMITS.general;
 
+        // TEMPORARY: BYPASS RATE LIMITING FOR TESTING
+        /*
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -120,14 +122,13 @@ export const handler = async (event, context) => {
                 body: JSON.stringify({ error: `Daily limit reached for ${category} posts.` })
             };
         }
-
+        */
         // --- RATE LIMITING END ---
 
 
-        // 2. Fuzz Location (Simple Random Offset)
-        // 0.001 deg is roughly 111 meters. 
-        // Fuzzing by +/- 0.002 deg (~200m radius box)
-        const fuzzFactor = 0.002;
+        // 2. Exact Location (No Fuzzing)
+        // Grouping logic depends on exact coordinates.
+        // const fuzzFactor = 0.002;
         let lat = Number(location.lat);
         let lng = Number(location.lng);
 
@@ -136,8 +137,10 @@ export const handler = async (event, context) => {
             return { statusCode: 400, body: 'Invalid coordinates' };
         }
 
-        const fuzzedLat = lat + (Math.random() * fuzzFactor * 2 - fuzzFactor);
-        const fuzzedLng = lng + (Math.random() * fuzzFactor * 2 - fuzzFactor);
+        // const fuzzedLat = lat + (Math.random() * fuzzFactor * 2 - fuzzFactor);
+        // const fuzzedLng = lng + (Math.random() * fuzzFactor * 2 - fuzzFactor);
+        const fuzzedLng = lng; // Use exact
+        const fuzzedLat = lat; // Use exact
 
         // Ensure proper formatting for WKT
         const wkt = `POINT(${fuzzedLng.toFixed(6)} ${fuzzedLat.toFixed(6)})`;

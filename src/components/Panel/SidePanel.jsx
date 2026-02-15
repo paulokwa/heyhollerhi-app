@@ -64,7 +64,7 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, on
             </div>
 
             <header className="panel-header">
-                <h1>HeyHollerHi</h1>
+                <h1>Hey Holler Hi!</h1>
                 <p className="tagline">Local pulse, verified & vibes.</p>
             </header>
 
