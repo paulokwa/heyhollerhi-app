@@ -14,3 +14,22 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Auth Setup
+
+This project uses **Supabase** for authentication.
+
+### Environment Variables
+
+Create a `.env` file in the root directory (or configure in Netlify):
+
+```bash
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### Authentication Features
+
+-   **Google OAuth**: Enable Google provider in Supabase Dashboard.
+-   **Email/Password**: Enable Email provider.
+-   **Redirects**: Ensure your Site URL and Redirect URLs in Supabase include your Netlify domain and local dev URL (e.g., `http://localhost:5173`).

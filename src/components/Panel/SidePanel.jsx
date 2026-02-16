@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { AlignJustify, GalleryHorizontal } from 'lucide-react';
+import { useAuth } from '../Auth/AuthProvider';
+import LoginModal from '../Auth/LoginModal';
 import SearchBar from './SearchBar';
 import FilterBar from './FilterBar';
 import Feed from '../Feed/Feed';
@@ -9,7 +11,10 @@ import './SidePanel.css';
 const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggle, visiblePosts, onPostSuccess }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'carousel'
+
+    const { user } = useAuth();
 
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
@@ -33,7 +38,8 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
                 method: 'POST',
                 body: JSON.stringify({
                     ...data,
-                    location: locationPayload
+                    location: locationPayload,
+                    user_id: user?.id // Attach user ID
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -55,6 +61,15 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
 
         } catch (e) {
             console.error("Error submitting", e);
+        }
+    };
+
+    const handleComposeClick = () => {
+        if (!user) {
+            setIsLoginOpen(true);
+        } else {
+            setIsComposing(true);
+            setIsExpanded(true);
         }
     };
 
@@ -91,10 +106,7 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
 
             <footer className="panel-footer">
                 {!isComposing && (
-                    <button className="say-something-btn" onClick={() => {
-                        setIsComposing(true);
-                        setIsExpanded(true); // Auto-expand on compose
-                    }}>
+                    <button className="say-something-btn" onClick={handleComposeClick}>
                         Say something...
                     </button>
                 )}
@@ -108,6 +120,8 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
             {isComposing && (
                 <Composer onClose={() => setIsComposing(false)} onSubmit={handlePostSubmit} />
             )}
+
+            <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
         </aside>
     );
 };
