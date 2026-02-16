@@ -24,22 +24,29 @@ const AppLayout = () => {
     const fetchPosts = async () => {
         try {
             const { data, error } = await supabase
-                .from('posts')
+                .from('posts_feed') // Use View for GeoJSON
                 .select('*')
-                .eq('status', 'published')
+                // .eq('status', 'published') // View already filters this
                 .order('created_at', { ascending: false })
-                .limit(500); // MVP limit
+                .limit(500);
 
             if (error) {
+                // Ignore AbortError: happens in dev strict mode
+                if (error.message && error.message.includes('AbortError')) {
+                    console.log("Fetch aborted (ignoring)");
+                    return;
+                }
                 console.error("Error fetching posts:", error);
                 return;
             }
 
             if (data) {
+                console.log("AppLayout: Fetched", data.length, "posts");
                 const features = data.map(dbPostToFeature);
                 setAllFeatures(features);
             }
         } catch (e) {
+            if (e.name === 'AbortError') return;
             console.error("Fetch exception:", e);
         }
     };

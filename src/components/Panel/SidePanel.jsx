@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { AlignJustify, GalleryHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { List, GalleryHorizontal, User, LogOut } from 'lucide-react';
 import { useAuth } from '../Auth/AuthProvider';
 import LoginModal from '../Auth/LoginModal';
+import ProfileModal from '../Auth/ProfileModal';
+import Avatar from '../Auth/Avatar';
 import SearchBar from './SearchBar';
 import FilterBar from './FilterBar';
 import Feed from '../Feed/Feed';
@@ -12,9 +14,20 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
     const [isExpanded, setIsExpanded] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isWelcomeMode, setIsWelcomeMode] = useState(false);
+    const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'carousel'
 
-    const { user } = useAuth();
+    const { user, profile, mustCompleteProfile, signOut } = useAuth();
+
+    // Auto-open profile modal for new users (First Run Experience)
+    useEffect(() => {
+        if (mustCompleteProfile) {
+            setIsWelcomeMode(true);
+            setIsProfileOpen(true);
+        }
+    }, [mustCompleteProfile]);
 
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
@@ -32,17 +45,26 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
                 label: feature?.place_name || feature?.text || "Unknown Location"
             };
 
-            console.log("Submitting to Netlify...", { ...data, location: locationPayload });
+            const payload = {
+                ...data,
+                location: locationPayload,
+                user_id: user?.id,
+                author_alias: profile?.display_name || 'Anonymous', // Send alias
+                avatar_seed: profile?.avatar_seed // Send avatar seed
+            };
+
+            // Get token for auth
+            const { data: { session } } = await import('../../services/supabaseClient').then(m => m.supabase.auth.getSession());
+            const token = session?.access_token;
+
+            console.log("Submitting to Netlify...", payload);
 
             const response = await fetch('/.netlify/functions/createPost', {
                 method: 'POST',
-                body: JSON.stringify({
-                    ...data,
-                    location: locationPayload,
-                    user_id: user?.id // Attach user ID
-                }),
+                body: JSON.stringify(payload),
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
                 }
             });
 
@@ -81,15 +103,56 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
             </div>
 
             <header className="panel-header">
-                <h1>Hey Holler Hi!</h1>
-                <p className="tagline">Local pulse, verified & vibes.</p>
-                <button
-                    className="view-toggle-btn mobile-only"
-                    onClick={() => setViewMode(prev => prev === 'list' ? 'carousel' : 'list')}
-                    aria-label="Toggle view"
-                >
-                    {viewMode === 'list' ? <GalleryHorizontal size={20} /> : <AlignJustify size={20} />}
-                </button>
+                <div>
+                    <h1>Hey Holler Hi!</h1>
+                    <p className="tagline">Local pulse, verified & vibes.</p>
+                </div>
+
+                <div className="header-actions">
+                    <button
+                        className="view-toggle-btn mobile-only"
+                        onClick={() => setViewMode(prev => prev === 'list' ? 'carousel' : 'list')}
+                        aria-label="Toggle view"
+                    >
+                        {viewMode === 'list' ? <GalleryHorizontal size={20} /> : <List size={20} />}
+                    </button>
+
+                    {/* Account Button */}
+                    {user ? (
+                        <div className="account-menu-wrapper" style={{ position: 'relative' }}>
+                            <button
+                                className="account-btn"
+                                onClick={() => {
+                                    setIsAccountMenuOpen(!isAccountMenuOpen);
+                                    setIsExpanded(true);
+                                }}
+                                title={profile?.display_name}
+                            >
+                                <Avatar seed={profile?.avatar_seed || user.id} size={32} />
+                            </button>
+
+                            {isAccountMenuOpen && (
+                                <div className="account-dropdown glass-panel">
+                                    <div className="dropdown-user-info">
+                                        <span className="dropdown-name">{profile?.display_name || 'Traveler'}</span>
+                                        <span className="dropdown-email">{user.email}</span>
+                                    </div>
+                                    <div className="dropdown-divider"></div>
+                                    <button onClick={() => { setIsProfileOpen(true); setIsWelcomeMode(false); setIsAccountMenuOpen(false); }}>
+                                        <User size={16} /> Profile
+                                    </button>
+                                    <button onClick={() => { signOut(); setIsAccountMenuOpen(false); }}>
+                                        <LogOut size={16} /> Log Out
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <button className="login-btn-header" onClick={() => setIsLoginOpen(true)}>
+                            Log In
+                        </button>
+                    )}
+                </div>
             </header>
 
             <div className="panel-content">
@@ -122,6 +185,21 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
             )}
 
             <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+
+            <ProfileModal
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+                isWelcomeMode={isWelcomeMode}
+            />
+
+            {/* Click outside listener for dropdown could go here or use a library, 
+                for now simple toggle is fine but lets close it if we click elsewhere logic is omitted for brevity */}
+            {isAccountMenuOpen && (
+                <div
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }}
+                    onClick={() => setIsAccountMenuOpen(false)}
+                />
+            )}
         </aside>
     );
 };

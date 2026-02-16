@@ -116,9 +116,7 @@
 
     .view-toggle-btn.mobile-only {
         display: flex;
-        position: absolute;
-        top: 20px;
-        right: 20px;
+        /* Position static to sit in flow */
         background: transparent;
         border: none;
         color: var(--color-text);
@@ -164,4 +162,109 @@
     .panel-header h1 {
         margin-top: -25px;
     }
+}
+
+/* Header Actions */
+.header-actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.login-btn-header {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.login-btn-header:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.account-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-btn:hover {
+    transform: scale(1.1);
+}
+
+.account-dropdown {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    width: 200px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    animation: fadeIn 0.1s ease-out;
+}
+
+.dropdown-user-info {
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.dropdown-email {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
+.account-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 8px;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.account-dropdown button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }

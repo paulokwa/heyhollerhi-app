@@ -142,26 +142,30 @@ const parseHexWKB = (hex) => {
 };
 
 export const dbPostToFeature = (post) => {
-    // Parse location_geog
+    // Parse location_geog (or location_json from View)
     let coordinates = [0, 0];
-    const loc = post.location_geog;
+    const loc = post.location_json || post.location_geog;
 
     if (loc) {
         if (typeof loc === 'object' && loc.coordinates) {
-            // Handle GeoJSON (Supabase sometimes returns this)
+            // Handle GeoJSON (Supabase View or Object)
             coordinates = loc.coordinates;
         } else if (typeof loc === 'string') {
             if (loc.startsWith('POINT')) {
                 // Handle WKT "POINT(lng lat)"
-                const match = loc.match(/POINT\s*\(([-\d\.]+) ([-\d\.]+)\)/i);
+                const match = loc.match(/POINT\s*\(([-\d\.]+)[\s,]+([-\d\.]+)\)/i);
                 if (match) {
                     coordinates = [parseFloat(match[1]), parseFloat(match[2])];
+                    console.log("mapUtils: Parsed WKT:", coordinates);
+                } else {
+                    console.warn("mapUtils: Failed to match WKT regex:", loc);
                 }
             } else {
                 // Try Hex WKB
                 const parsed = parseHexWKB(loc);
                 if (parsed) {
                     coordinates = parsed;
+                    console.log("mapUtils: Parsed WKB:", coordinates);
                 } else {
                     console.warn("mapUtils: Failed to parse location:", loc, "Post ID:", post.id);
                 }
@@ -182,8 +186,11 @@ export const dbPostToFeature = (post) => {
             timestamp: post.created_at,
             // Add other fields as needed
             author_id: post.author_user_id,
+            author_alias: post.author_alias, // Added
+            avatar_seed: post.avatar_seed,   // Added
             found_item_type: post.found_item_type,
-            location_label: post.location_label // Pass label to UI
+            location_label: post.location_label, // Pass label to UI
+            subtype: post.subtype // Ensure subtype is passed
         }
     };
 };

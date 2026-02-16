@@ -1,10 +1,11 @@
 import React from 'react';
 import { getCategoryColor } from '../../utils/mapUtils';
 import { Heart, MessageCircle, AlertTriangle, Check, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import Avatar from '../Auth/Avatar';
 import './Feed.css';
 
 const PostItem = ({ post, onDoubleClick }) => {
-    const { category, content, author_alias, timestamp, subtype, location_label } = post.properties;
+    const { category, content, author_alias, avatar_seed, timestamp, subtype, location_label } = post.properties;
     const color = getCategoryColor(category);
     const [isExpanded, setIsExpanded] = React.useState(false);
 
@@ -71,7 +72,11 @@ const PostItem = ({ post, onDoubleClick }) => {
                     <Icon size={14} />
                     <span>{category} {subtype ? `• ${subtype}` : ''}</span>
                 </div>
-                <span className="post-alias" style={{ color: color, fontSize: '0.75rem', opacity: 0.8 }}>{author_alias}</span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="post-alias" style={{ color: color, fontSize: '0.75rem', opacity: 0.8 }}>{author_alias}</span>
+                    <Avatar seed={avatar_seed || author_alias} size={24} />
+                </div>
             </div>
         </div>
     );

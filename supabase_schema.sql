@@ -102,3 +102,37 @@ alter table public.reports enable row level security;
 
 -- Admin Role & Policies (Optional: if we use Supabase Auth for Admin dashboard)
 -- For now, relying on Netlify Functions with Service Role for admin actions.
+
+-- 6. USER PROFILES
+create table public.profiles (
+  id uuid references auth.users(id) on delete cascade primary key,
+  display_name text,
+  bio text,
+  avatar_seed text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- RLS for Profiles
+alter table public.profiles enable row level security;
+
+-- STRICT: Users can ONLY view/edit their OWN profile.
+create policy "Users can view their own profile"
+  on public.profiles for select
+  using (auth.uid() = id);
+
+create policy "Users can insert their own profile"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
+create policy "Users can update their own profile"
+  on public.profiles for update
+  using (auth.uid() = id);
+
+-- 7. UPDATE POSTS TABLE
+-- Add avatar_seed to posts to snapshot the avatar at the time of posting
+alter table public.posts add column avatar_seed text;
+-- Add author_alias to snapshot the display name at the time of posting
+alter table public.posts add column author_alias text;
+
+

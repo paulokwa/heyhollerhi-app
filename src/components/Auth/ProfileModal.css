@@ -1,0 +1,289 @@
+.profile-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.profile-modal {
+    width: 90%;
+    max-width: 450px;
+    padding: 2rem;
+    position: relative;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.welcome-text {
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.large-avatar {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    border-width: 3px !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.refresh-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(2deg);
+}
+
+.profile-form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-with-action {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-action input {
+    flex: 1;
+}
+
+.input-with-action button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    width: 42px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.input-with-action button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #818cf8;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.char-count {
+    text-align: right;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 4px;
+}
+
+.save-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-top: 1rem;
+}
+
+.save-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.account-actions {
+    margin-top: 2rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 0.8rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.delete-confirm {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    width: 100%;
+}
+
+.delete-confirm p {
+    font-size: 0.85rem;
+    color: #fca5a5;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.delete-confirm-row {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-confirm-row input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 6px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.confirm-delete-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 36px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.confirm-delete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cancel-delete-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.status-message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+}
+
+.status-message.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
+.status-message.error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
