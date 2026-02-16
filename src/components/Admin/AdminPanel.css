@@ -8,27 +8,43 @@
     color: white;
 }
 
-.admin-login input {
-    padding: 10px;
-    margin: 10px;
-    font-size: 16px;
+/* Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0;
 }
 
-.admin-panel {
-    padding: 20px;
-    background: var(--color-bg);
-    min-height: 100vh;
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
     color: var(--color-text-main);
 }
 
-.admin-panel header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 10px;
+.tab-btn.active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+    font-weight: 600;
 }
 
+.list-controls {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Table Updates */
 .posts-table {
     width: 100%;
     border-collapse: collapse;
@@ -36,72 +52,108 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-radius: var(--radius-md);
     overflow: hidden;
-    table-layout: fixed;
+    /* Remove fixed layout to let content flow better with tabs */
+    /* table-layout: fixed; */
 }
 
-.posts-table th,
+/* Scroll wrapper if needed */
+/* Main Panel Layout */
+.admin-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    /* Parent container doesn't scroll, child does */
+}
+
+/* Header stays fixed at top */
+.admin-panel header {
+    flex-shrink: 0;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    /* Ensure header content aligns */
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Content Area scrolls independently */
+.admin-content {
+    flex: 1;
+    overflow-y: auto;
+    /* Vertical Scroll */
+    overflow-x: auto;
+    /* Horizontal Scroll */
+    padding: 20px;
+}
+
+.posts-table th {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--color-text-main);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+    cursor: pointer;
+    /* Clickable headers for sorting */
+    user-select: none;
+}
+
+.posts-table th:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sort-icon {
+    font-size: 0.8em;
+    margin-left: 5px;
+    opacity: 0.6;
+}
+
 .posts-table td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid var(--glass-border);
     color: var(--color-text-muted);
     vertical-align: middle;
-}
-
-.posts-table th {
-    color: var(--color-text-main);
-    font-weight: 600;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-/* Column Widths */
-.posts-table th:nth-child(1) {
-    width: 140px;
-}
-
-/* Time */
-.posts-table th:nth-child(2) {
-    width: 100px;
-}
-
-/* Status */
-.posts-table th:nth-child(3) {
-    width: 100px;
-}
-
-/* Category */
-.posts-table th:nth-child(4) {
-    width: auto;
-}
-
-/* Content - fluid */
-.posts-table th:nth-child(5) {
-    width: 140px;
-}
-
-/* IP */
-.posts-table th:nth-child(6) {
-    width: 180px;
-    text-align: right;
-}
-
-/* Actions */
-.posts-table td:nth-child(6) {
-    text-align: right;
-}
-
-/* Truncate Content Column */
-.posts-table td:nth-child(4) {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 0;
-    /* Required for table-layout: fixed to trigger ellipsis on fluid columns */
+    /* Prevent wrapping by default for small meta columns */
+}
+
+/* Content Column (now 5th) */
+.posts-table td:nth-child(5) {
+    white-space: normal;
+    /* Allow content to wrap */
+    overflow-wrap: anywhere;
+    /* aggressively break long words/URLs */
+    word-break: break-word;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+/* Location Column (4th) */
+.posts-table td:nth-child(4) {
+    white-space: normal;
+    max-width: 200px;
+}
+
+.context-cell small {
+    display: block;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+}
+
+.context-cell strong {
+    color: var(--color-text-main);
 }
 
 .status-removed {
     opacity: 0.5;
-    background: #fee2e2;
+    background: #fee2e210;
+    /* Transparent red tint */
 }
 
 .btn-delete {

@@ -7,21 +7,17 @@ const AdminPanel = () => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    // Hardcoded client-side check for UX only. Real security is server-side.
-    // Ideally this matches the env var ADMIN_SECRET.
-    // For MVP, we'll ask the user to enter it.
+    const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // We don't validate client-side per se, we just use this secret for requests.
-        // If the server accepts it, we're good.
-        fetchPosts(secret);
+        fetchData(secret);
     };
 
-    const fetchPosts = async (paramsSecret) => {
+    const fetchData = async (paramsSecret) => {
         setLoading(true);
         setError(null);
+
         try {
             const response = await fetch('/.netlify/functions/adminAction', {
                 method: 'POST',
@@ -48,8 +44,15 @@ const AdminPanel = () => {
         }
     };
 
+    // Initial fetch on mount if already authenticated (updates list)
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchData(secret);
+        }
+    }, [isAuthenticated]);
+
     const handleAction = async (action, targetId) => {
-        if (!confirm(`Are you sure you want to ${action} this item?`)) return;
+        if (!confirm(`Are you sure you want to ${action === 'delete_post' ? 'delete' : 'ban user for'} this item?`)) return;
 
         try {
             const response = await fetch('/.netlify/functions/adminAction', {
@@ -62,14 +65,36 @@ const AdminPanel = () => {
             });
 
             if (response.ok) {
-                // Refresh list
-                fetchPosts();
+                fetchData(secret);
             } else {
                 alert("Action failed");
             }
         } catch (e) {
             alert(e.message);
         }
+    };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedPosts = [...posts].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
+
+    const SortIcon = ({ column }) => {
+        if (sortConfig.key !== column) return <span className="sort-icon">⇅</span>;
+        return <span className="sort-icon">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
     };
 
     if (!isAuthenticated) {
@@ -98,51 +123,58 @@ const AdminPanel = () => {
         <div className="admin-panel">
             <header>
                 <h1>Moderation Dashboard</h1>
-                <button onClick={() => setIsAuthenticated(false)}>Logout</button>
+                <div className="admin-controls">
+                    <span className="user-status">Logged in</span>
+                    <button onClick={() => setIsAuthenticated(false)}>Logout</button>
+                </div>
             </header>
 
             <div className="admin-content">
-                <button onClick={() => fetchPosts()}>Refresh List</button>
+                <div className="list-controls">
+                    <button onClick={() => fetchData(secret)}>Refresh List</button>
+                </div>
 
                 <table className="posts-table">
                     <thead>
                         <tr>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th>Category</th>
+                            <th onClick={() => handleSort('created_at')}>Time <SortIcon column="created_at" /></th>
+                            <th onClick={() => handleSort('status')}>Status <SortIcon column="status" /></th>
+                            <th onClick={() => handleSort('category')}>Category <SortIcon column="category" /></th>
+                            <th onClick={() => handleSort('location_label')}>Location <SortIcon column="location_label" /></th>
                             <th>Content</th>
-                            <th>IP</th>
+                            <th>IP / User</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {posts.map(post => (
-                            <tr key={post.id} className={`status-${post.status}`}>
-                                <td>{new Date(post.created_at).toLocaleString()}</td>
-                                <td>{post.status}</td>
-                                <td>{post.category}</td>
+                        {sortedPosts.map(item => (
+                            <tr key={item.id} className={`status-${item.status}`}>
+                                <td>{new Date(item.created_at).toLocaleString()}</td>
+                                <td>{item.status}</td>
+                                <td>{item.category}</td>
+                                <td>{item.location_label || <span className="text-muted">N/A</span>}</td>
                                 <td>
-                                    {post.text_content || (
+                                    {item.text_content || (
                                         <span className="found-meta">
-                                            {post.found_item_type} ({post.found_item_class})
+                                            {item.found_item_type} ({item.found_item_class})
                                         </span>
                                     )}
                                 </td>
-                                <td>{post.author_ip || 'N/A'}</td>
+                                <td>{item.author_user_id ? 'App User' : (item.author_ip || 'N/A')}</td>
                                 <td>
-                                    {post.status !== 'removed' && (
+                                    {item.status !== 'removed' && (
                                         <button
                                             className="btn-delete"
-                                            onClick={() => handleAction('delete_post', post.id)}
+                                            onClick={() => handleAction('delete_post', item.id)}
                                         >
                                             Delete
                                         </button>
                                     )}
                                     <button
                                         className="btn-ban"
-                                        onClick={() => handleAction('ban_user', post.author_user_id)}
+                                        onClick={() => handleAction('ban_user', item.author_user_id)}
                                     >
-                                        Ban IP
+                                        Ban
                                     </button>
                                 </td>
                             </tr>

@@ -53,6 +53,29 @@ export const handler = async (event, context) => {
             if (error) throw error;
             result = data;
         }
+        else if (action === 'list_replies') {
+            // Fetch replies with parent post context
+            // Note: Supabase join requires exact foreign key relationship name or table name
+            // Assuming 'posts' is the relation name for post_id
+            const { data, error } = await supabase
+                .from('replies')
+                .select('*, posts (text_content, category)')
+                .order('created_at', { ascending: false })
+                .limit(100);
+
+            if (error) throw error;
+            result = data;
+        }
+        else if (action === 'delete_reply') {
+            const { data, error } = await supabase
+                .from('replies')
+                .update({ status: 'removed' })
+                .eq('id', target_id)
+                .select();
+
+            if (error) throw error;
+            result = data;
+        }
         else if (action === 'ban_user') {
             // Ban the user by adding to penalties table
             // We need a user_id. We'll ban the AUTHOR of the target post if target_id is passed as userId?
