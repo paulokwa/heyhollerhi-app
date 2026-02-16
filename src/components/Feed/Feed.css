@@ -45,8 +45,24 @@
     margin-bottom: 10px;
     line-height: 1.4;
     word-break: break-word;
-    /* Prevents overflow */
-    overflow-wrap: break-word;
+    /* Fallback */
+    overflow-wrap: anywhere;
+    /* Hard break long strings */
+}
+
+.see-more-btn {
+    background: none;
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0 4px;
+    display: inline;
+    text-decoration: none;
+}
+
+.see-more-btn:hover {
+    text-decoration: underline;
 }
 
 .post-footer {

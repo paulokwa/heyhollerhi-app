@@ -6,12 +6,18 @@ import './Feed.css';
 const PostItem = ({ post }) => {
     const { category, content, author_alias, timestamp, subtype, location_label } = post.properties;
     const color = getCategoryColor(category);
+    const [isExpanded, setIsExpanded] = React.useState(false);
 
     let Icon = MapPin;
     if (category === 'positive') Icon = Heart;
     if (category === 'rant') Icon = AlertTriangle;
     if (category === 'general') Icon = MessageCircle;
     if (category === 'found') Icon = Check;
+
+    // Truncation Logic
+    const TEXT_LIMIT = 25;
+    const shouldTruncate = content && content.length > TEXT_LIMIT;
+    const displayedContent = isExpanded || !shouldTruncate ? content : content.slice(0, TEXT_LIMIT) + '...';
 
     return (
         <div className="post-card glass-panel" style={{ borderLeftColor: color }}>
@@ -29,7 +35,22 @@ const PostItem = ({ post }) => {
                 </span>
             </div>
 
-            {content && <p className="post-content">{content}</p>}
+            {content && (
+                <div className="post-content-wrapper">
+                    <p className="post-content">
+                        {displayedContent}
+                        {shouldTruncate && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                                className="see-more-btn"
+                                style={{ color: color }}
+                            >
+                                {isExpanded ? ' See Less' : ' See More'}
+                            </button>
+                        )}
+                    </p>
+                </div>
+            )}
 
             {category === 'found' && (
                 <div className="found-badge" style={{ backgroundColor: color }}>
