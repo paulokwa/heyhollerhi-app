@@ -15,7 +15,7 @@ try {
         process.exit(1);
     }
 
-    const query = "Halifax Canada";
+    const query = process.argv[2] || "Halifax, Nova Scotia, Canada";
     const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=${key}`;
     console.log("Fetching:", url);
 

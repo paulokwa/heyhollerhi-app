@@ -153,7 +153,7 @@ export const dbPostToFeature = (post) => {
         } else if (typeof loc === 'string') {
             if (loc.startsWith('POINT')) {
                 // Handle WKT "POINT(lng lat)"
-                const match = loc.match(/POINT\(([-\d\.]+) ([-\d\.]+)\)/);
+                const match = loc.match(/POINT\s*\(([-\d\.]+) ([-\d\.]+)\)/i);
                 if (match) {
                     coordinates = [parseFloat(match[1]), parseFloat(match[2])];
                 }
