@@ -6,7 +6,7 @@ import Feed from '../Feed/Feed';
 import Composer from '../Composer/Composer';
 import './SidePanel.css';
 
-const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, onPostSuccess }) => {
+const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggle, visiblePosts, onPostSuccess }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'carousel'
@@ -81,7 +81,12 @@ const SidePanel = ({ onLocationSelect, filters, onFilterToggle, visiblePosts, on
                 <SearchBar onLocationSelect={onLocationSelect} />
                 <FilterBar filters={filters} onToggle={onFilterToggle} />
 
-                <Feed posts={visiblePosts || []} mode="explore" viewMode={viewMode} />
+                <Feed
+                    posts={visiblePosts || []}
+                    mode="explore"
+                    viewMode={viewMode}
+                    onPostDoubleClick={onPostDoubleClick}
+                />
             </div>
 
             <footer className="panel-footer">

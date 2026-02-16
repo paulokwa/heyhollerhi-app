@@ -182,6 +182,15 @@ const AppLayout = () => {
         }
     };
 
+    const handlePostDoubleClick = (feature) => {
+        if (feature && feature.geometry && feature.geometry.coordinates) {
+            setFlyToLocation({
+                center: feature.geometry.coordinates,
+                zoom: 18 // Street level
+            });
+        }
+    };
+
     return (
         <div className="app-layout">
             <div className="map-wrapper">
@@ -194,6 +203,7 @@ const AppLayout = () => {
             </div>
             <SidePanel
                 onLocationSelect={handleLocationSelect}
+                onPostDoubleClick={handlePostDoubleClick}
                 filters={filters}
                 onFilterToggle={handleFilterToggle}
                 visiblePosts={visiblePosts}

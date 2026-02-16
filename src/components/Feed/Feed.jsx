@@ -3,7 +3,7 @@ import { getCategoryColor } from '../../utils/mapUtils';
 import { Heart, MessageCircle, AlertTriangle, Check, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import './Feed.css';
 
-const PostItem = ({ post }) => {
+const PostItem = ({ post, onDoubleClick }) => {
     const { category, content, author_alias, timestamp, subtype, location_label } = post.properties;
     const color = getCategoryColor(category);
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -15,12 +15,17 @@ const PostItem = ({ post }) => {
     if (category === 'found') Icon = Check;
 
     // Truncation Logic
-    const TEXT_LIMIT = 25;
+    const TEXT_LIMIT = 100;
     const shouldTruncate = content && content.length > TEXT_LIMIT;
     const displayedContent = isExpanded || !shouldTruncate ? content : content.slice(0, TEXT_LIMIT) + '...';
 
     return (
-        <div className="post-card glass-panel" style={{ borderLeftColor: color }}>
+        <div
+            className="post-card glass-panel"
+            style={{ borderLeftColor: color, cursor: 'pointer' }}
+            onDoubleClick={onDoubleClick}
+            title="Double-click to zoom map"
+        >
             <div className="post-header">
                 {location_label ? (
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', fontWeight: 'bold', fontSize: '0.85rem', color: '#e2e8f0' }}>
@@ -72,7 +77,7 @@ const PostItem = ({ post }) => {
     );
 };
 
-const Feed = ({ posts, mode, viewMode = 'list' }) => {
+const Feed = ({ posts, mode, viewMode = 'list', onPostDoubleClick }) => {
     const carouselRef = React.useRef(null);
 
     const scrollCarousel = (direction) => {
@@ -98,7 +103,10 @@ const Feed = ({ posts, mode, viewMode = 'list' }) => {
                 <div className="feed-carousel-track" ref={carouselRef}>
                     {posts.map(post => (
                         <div key={post.properties.id || Math.random()} className="carousel-item">
-                            <PostItem post={post} />
+                            <PostItem
+                                post={post}
+                                onDoubleClick={() => onPostDoubleClick && onPostDoubleClick(post)}
+                            />
                         </div>
                     ))}
                 </div>
@@ -118,7 +126,11 @@ const Feed = ({ posts, mode, viewMode = 'list' }) => {
     return (
         <div className="feed-list">
             {posts.map(post => (
-                <PostItem key={post.properties.id || Math.random()} post={post} />
+                <PostItem
+                    key={post.properties.id || Math.random()}
+                    post={post}
+                    onDoubleClick={() => onPostDoubleClick && onPostDoubleClick(post)}
+                />
             ))}
         </div>
     );
