@@ -23,9 +23,11 @@ const PostItem = ({ post }) => {
         <div className="post-card glass-panel" style={{ borderLeftColor: color }}>
             <div className="post-header">
                 {location_label ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '0.85rem', color: '#e2e8f0' }}>
-                        <MapPin size={12} />
-                        <span>{location_label}</span>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', fontWeight: 'bold', fontSize: '0.85rem', color: '#e2e8f0' }}>
+                        <div style={{ marginTop: '2px', display: 'flex' }}>
+                            <MapPin size={14} />
+                        </div>
+                        <span style={{ lineHeight: '1.2' }}>{location_label}</span>
                     </div>
                 ) : (
                     <span></span>
