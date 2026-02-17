@@ -6,75 +6,106 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [session, setSession] = useState(null);
-    const [profile, setProfile] = useState(null);
+    const [profile, setProfileState] = useState(() => {
+        try {
+            const cached = localStorage.getItem('user_profile');
+            return cached ? JSON.parse(cached) : null;
+        } catch (e) { return null; }
+    });
+
+    const setProfile = (data) => {
+        setProfileState(data);
+        if (data) {
+            localStorage.setItem('user_profile', JSON.stringify(data));
+        } else {
+            localStorage.removeItem('user_profile');
+        }
+    };
+
     const [loading, setLoading] = useState(true);
     const [mustCompleteProfile, setMustCompleteProfile] = useState(false);
 
     // Fetch or Create Profile
     const ensureProfile = async (userId, email) => {
+        console.log("ensureProfile called for:", userId);
+
+        // Timeout helper - Reduced to 2s to fail faster if needed
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timed out')), 2000));
+
         try {
             // 1. Try to get existing profile
-            let { data, error } = await supabase
+            const fetchPromise = supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
-                .single();
+                .maybeSingle();
 
-            if (!data && error) {
-                // If error is NOT "Row not found", log it
-                if (error.code !== 'PGRST116') {
-                    console.error("Profile fetch error:", error);
-                }
-            }
+            let { data, error } = await Promise.race([fetchPromise, timeout]);
+
+            if (error) console.error("Profile select error:", error);
+            if (data) console.log("Profile found (Network):", data.display_name);
 
             if (data) {
-                console.log("Profile loaded:", data.display_name);
-                setProfile(data);
+                setProfile(data); // Updates state & local storage
                 setMustCompleteProfile(false);
-            } else {
-                // 2. Create new profile if missing
-                console.log("Creating new profile for:", userId);
-                const newProfile = {
-                    id: userId,
-                    display_name: (await import('../../utils/nameGenerator')).generateName(),
-                    avatar_seed: crypto.randomUUID(),
-                    bio: ''
-                };
+                return;
+            }
 
-                const { data: created, error: createError } = await supabase
-                    .from('profiles')
-                    .insert(newProfile)
-                    .select()
-                    .single();
+            // If network timed out or failed, but we have a cached profile matching the ID, stick with it
+            if (!data && profile && profile.id === userId) {
+                console.log("Network search failed, keeping cached profile.");
+                return;
+            }
 
-                if (createError) {
-                    // If creation failed but it might already verify existence (race condition), try select again
-                    console.error("Error creating profile:", createError);
-                } else {
-                    setProfile(created);
-                    setMustCompleteProfile(true);
+            // 2. Create new profile if missing
+            console.log("Profile missing, attempting create...");
+            const newProfile = {
+                id: userId,
+                display_name: (await import('../../utils/nameGenerator')).generateName(),
+                avatar_seed: crypto.randomUUID(),
+                bio: ''
+            };
+
+            const { data: created, error: createError } = await supabase
+                .from('profiles')
+                .insert(newProfile)
+                .select()
+                .single();
+
+            if (created) {
+                console.log("Profile created successfully:", created);
+                setProfile(created);
+                setMustCompleteProfile(true);
+            } else if (createError) {
+                console.error("Profile create error:", createError);
+
+                // 3. Robustness: If duplicate key error (23505), it means it exists! Fetch it.
+                if (createError.code === '23505' || createError.message?.includes('duplicate key')) {
+                    console.log("Duplicate detected (race condition), retrying select...");
+                    const { data: retryData, error: retryError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', userId)
+                        .single();
+
+                    if (retryData) {
+                        console.log("Retry select success:", retryData);
+                        setProfile(retryData);
+                        setMustCompleteProfile(false);
+                    } else {
+                        console.error("Retry select failed:", retryError);
+                    }
                 }
             }
         } catch (e) {
-            console.error("Profile check failed:", e);
+            console.error("Profile logic exception:", e);
         }
     };
 
     useEffect(() => {
-        // Check active session
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                await ensureProfile(session.user.id, session.user.email);
-            }
-            setLoading(false);
-        };
-
-        getSession();
-
         // Listen for changes
+        // We rely SOLELY on onAuthStateChange to handle initial load and updates
+        // to avoid race conditions with manual getSession() calls.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("Auth State Change:", event);
             setSession(session);
@@ -101,7 +132,7 @@ export const AuthProvider = ({ children }) => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/`
+                redirectTo: window.location.origin
             }
         });
         if (error) throw error;
