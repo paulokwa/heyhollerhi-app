@@ -189,6 +189,9 @@ export const dbPostToFeature = (post) => {
             author_alias: post.author_alias, // Added
             avatar_seed: post.avatar_seed,   // Added
             found_item_type: post.found_item_type,
+            found_datetime: post.found_datetime, // Added
+            found_disposition: post.found_disposition, // Added
+            found_business_type: post.found_business_type, // Added
             location_label: post.location_label, // Pass label to UI
             subtype: post.subtype // Ensure subtype is passed
         }

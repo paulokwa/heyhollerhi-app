@@ -5,7 +5,7 @@ import Avatar from '../Auth/Avatar';
 import './Feed.css';
 
 const PostItem = ({ post, onDoubleClick }) => {
-    const { category, content, author_alias, avatar_seed, timestamp, subtype, location_label } = post.properties;
+    const { category, content, author_alias, avatar_seed, timestamp, subtype, location_label, found_item_type, found_datetime, found_disposition } = post.properties;
     const color = getCategoryColor(category);
     const [isExpanded, setIsExpanded] = React.useState(false);
 
@@ -61,9 +61,30 @@ const PostItem = ({ post, onDoubleClick }) => {
             )}
 
             {category === 'found' && (
-                <div className="found-badge" style={{ backgroundColor: color }}>
-                    <Icon size={12} color="white" />
-                    <span>Found Item</span>
+                <div className="found-details-container" style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+
+                    <div className="found-badge" style={{ backgroundColor: color, display: 'inline-flex', marginBottom: '8px' }}>
+                        <Icon size={12} color="white" />
+                        <span style={{ fontWeight: 'bold' }}>Found: {found_item_type || 'Unknown Item'}</span>
+                    </div>
+
+                    <div style={{ fontSize: '0.9rem', color: '#e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {found_datetime && (
+                            <div>
+                                <span style={{ opacity: 0.7 }}>When: </span>
+                                {new Date(found_datetime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                            </div>
+                        )}
+                        {found_disposition && (
+                            <div>
+                                <span style={{ opacity: 0.7 }}>Status: </span>
+                                {found_disposition === 'left_there' && 'Left at location'}
+                                {found_disposition === 'police' && 'Given to Police'}
+                                {found_disposition === 'business' && 'Left with Business'}
+                                {!['left_there', 'police', 'business'].includes(found_disposition) && found_disposition}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
