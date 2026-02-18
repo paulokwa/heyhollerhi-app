@@ -108,6 +108,13 @@ export const AuthProvider = ({ children }) => {
         // to avoid race conditions with manual getSession() calls.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("Auth State Change:", event);
+
+            if (event === 'PASSWORD_RECOVERY') {
+                // Redirect to update password page
+                window.location.hash = ''; // Clear the hash
+                window.location.pathname = '/update-password';
+            }
+
             setSession(session);
             const currentUser = session?.user ?? null;
             setUser(currentUser);
