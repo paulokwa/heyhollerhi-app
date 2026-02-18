@@ -25,9 +25,17 @@ const LoginModal = ({ isOpen, onClose }) => {
                 await signInWithEmail(email, password);
                 onClose();
             } else if (mode === 'signup') {
-                await signUpWithEmail(email, password);
-                setMessage('Check your email for the confirmation link!');
-                setMode('login'); // Switch to login view or keep message
+                const data = await signUpWithEmail(email, password);
+
+                // Check if user already exists (Supabase returns empty identities for security/existing users)
+                if (data?.user && data.user.identities && data.user.identities.length === 0) {
+                    setError('This email is already registered. Please log in.');
+                    // Optional: Auto-switch to login? 
+                    // setMode('login'); 
+                } else {
+                    setMessage('Check your email for the confirmation link!');
+                    setMode('login');
+                }
             } else if (mode === 'forgot') {
                 await resetPassword(email);
                 setMessage('Password reset email sent!');
