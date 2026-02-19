@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
+import { useAuth } from './AuthProvider'; // Use the hook from AuthProvider
 import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import './UpdatePassword.css';
 
 const UpdatePassword = () => {
+    const { user } = useAuth(); // Get current user for email hint
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
@@ -56,10 +58,22 @@ const UpdatePassword = () => {
                 <p className="subtitle">Enter your new password below to secure your account.</p>
 
                 <form onSubmit={handleUpdatePassword}>
+                    {/* Hidden username field for password managers */}
+                    <input
+                        type="text"
+                        name="username"
+                        value={user?.email || ''}
+                        autoComplete="username"
+                        style={{ display: 'none' }}
+                        readOnly
+                    />
+
                     <div className="input-group">
                         <div className="input-wrapper">
                             <input
                                 type={showPassword ? "text" : "password"}
+                                name="new-password"
+                                autoComplete="new-password"
                                 placeholder="New Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
