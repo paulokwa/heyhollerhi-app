@@ -55,39 +55,65 @@ export const handler = async (event, context) => {
 
         const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-        // 2a. Manually delete related data (Cascade workaround)
-        console.log('Cleaning up user data for:', user.id);
-
-        // Delete Profile
-        const { error: profileError } = await supabaseAdmin
-            .from('profiles')
-            .delete()
-            .eq('id', user.id);
-
-        if (profileError) {
-            console.error('Error deleting profile:', profileError);
-            // We continue even if profile delete fails, as it might not exist or might be the cause of the next error
-        }
-
-        // Delete Posts
+        // 2a. Anonymize Posts (Option 1: Keep posts for community)
+        console.log('Anonymizing posts for:', user.id);
         const { error: postsError } = await supabaseAdmin
             .from('posts')
-            .delete()
+            .update({
+                author_alias: 'Deleted User',
+                author_user_id: null, // Remove link to user
+                avatar_seed: 'deleted'
+            })
             .eq('author_user_id', user.id);
 
         if (postsError) {
-            console.error('Error deleting posts:', postsError);
+            console.error('Error anonymizing posts:', postsError);
         }
 
-        // 3. Delete User from Auth
-        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+        // 2b. Anonymize Profile
+        console.log('Anonymizing profile for:', user.id);
+        const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .update({
+                display_name: 'Deleted User',
+                bio: null,
+                avatar_seed: 'deleted',
+                status: 'deleted',
+                deleted_at: new Date().toISOString(),
+                anonymized_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
 
-        if (deleteError) {
-            console.error('Delete error:', deleteError);
-            return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to delete user: ' + deleteError.message }) };
+        if (profileError) {
+            console.error('Error anonymizing profile:', profileError);
         }
 
-        console.log('User deleted successfully:', user.id);
+        // 3. Soft Delete Auth User (Release Email & Ban)
+        // We change email to allow re-signup with the same address.
+        const deletedEmail = `deleted_${user.id}@deleted.com`;
+
+        const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
+            user.id,
+            {
+                email: deletedEmail,
+                phone: null,
+                user_metadata: { status: 'deleted' },
+                app_metadata: { status: 'deleted' },
+                ban_duration: '876000h' // 100 years
+            }
+        );
+
+        if (updateAuthError) {
+            console.error('Auth update error:', updateAuthError);
+            // If we fail to update email/ban, we might fallback to delete if strict requirement,
+            // but for now let's return error but consider it partial success if profiles updated.
+            return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to fully anonymize account: ' + updateAuthError.message }) };
+        }
+
+        // We do NOT delete the user from auth, to preserve the ID for the profile record (since FK exists).
+        // But we banned them and changed email.
+
+        console.log('User anonymized successfully:', user.id);
 
         return {
             statusCode: 200,

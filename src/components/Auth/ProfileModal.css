@@ -171,6 +171,39 @@
     gap: 1rem;
 }
 
+.action-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.secondary-action-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.secondary-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.secondary-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .logout-btn {
     display: flex;
     align-items: center;
@@ -227,6 +260,14 @@
     color: #fca5a5;
     margin-bottom: 0.5rem;
     text-align: center;
+}
+
+.warning-text {
+    color: #fca5a5;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    display: block;
 }
 
 .delete-confirm-row {
@@ -286,4 +327,27 @@
 .status-message.error {
     background: rgba(239, 68, 68, 0.2);
     color: #fca5a5;
+}
+
+.my-posts-view {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #cbd5e1;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
 }

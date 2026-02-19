@@ -1,0 +1,121 @@
+.my-posts-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.my-posts-container h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.my-posts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.my-post-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background 0.2s;
+}
+
+.my-post-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.my-post-item.deleted {
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.post-info {
+    display: flex;
+    gap: 10px;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.status-badge.deleted {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.post-category {
+    text-transform: capitalize;
+    font-weight: 500;
+}
+
+.post-date {
+    color: #94a3b8;
+}
+
+.post-preview {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.delete-post-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    /* red-500 */
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.delete-post-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    /* red-400 */
+}
+
+.delete-post-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.my-posts-loading,
+.my-posts-error {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+}
+
+.no-posts {
+    text-align: center;
+    color: #64748b;
+    font-style: italic;
+    padding: 20px;
+}

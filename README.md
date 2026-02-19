@@ -33,3 +33,9 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 -   **Google OAuth**: Enable Google provider in Supabase Dashboard.
 -   **Email/Password**: Enable Email provider.
 -   **Redirects**: Ensure your Site URL and Redirect URLs in Supabase include your Netlify domain and local dev URL (e.g., `http://localhost:5173`).
+
+## Privacy & GDPR Features
+
+- **My Posts**: Users can view and delete their own posts (soft delete). Deleted posts are hidden from the public feed but remain in "My Posts" labeled as "Deleted".
+- **Account Deletion**: Deleting an account anonymizes the profile (name -> "Deleted User") and posts, but keeps the content to preserve community context. Login is disabled and the email is released.
+- **Data Export**: Users can download a JSON file containing their profile and post history.
