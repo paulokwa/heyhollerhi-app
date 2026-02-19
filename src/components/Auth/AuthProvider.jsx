@@ -24,6 +24,9 @@ export const AuthProvider = ({ children }) => {
 
     const [loading, setLoading] = useState(true);
     const [mustCompleteProfile, setMustCompleteProfile] = useState(false);
+    const [authError, setAuthError] = useState(null);
+
+    const clearAuthError = () => setAuthError(null);
 
     // Fetch or Create Profile
     const ensureProfile = async (userId, email) => {

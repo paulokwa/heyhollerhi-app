@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../Auth/AuthProvider'; // Adjust path if needed
 import { X, Mail, Lock, Check } from 'lucide-react';
 import './LoginModal.css';
