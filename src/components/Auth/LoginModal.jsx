@@ -42,7 +42,34 @@ const LoginModal = ({ isOpen, onClose }) => {
                 setMode('login');
             }
         } catch (err) {
-            setError(err.message);
+            // Check if it's a credential error to provide specific feedback
+            // Supabase auth.signInWithPassword returns generic "Invalid login credentials"
+            if (err.message.includes('Invalid login credentials') || err.message.includes('Invalid login details')) {
+                try {
+                    // Call our helper to differentiate "Wrong Password" vs "No Account"
+                    const checkRes = await fetch('/.netlify/functions/checkEmail', {
+                        method: 'POST',
+                        body: JSON.stringify({ email })
+                    });
+
+                    if (checkRes.ok) {
+                        const checkData = await checkRes.json();
+                        if (checkData.exists) {
+                            setError('Invalid password. Please try again.');
+                        } else {
+                            setError('Account not found. If you deleted your account, please Sign Up again.');
+                        }
+                    } else {
+                        // Fallback if check fails
+                        setError('Invalid email or password.');
+                    }
+                } catch (checkErr) {
+                    console.error("Check email failed", checkErr);
+                    setError('Invalid email or password.');
+                }
+            } else {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }
