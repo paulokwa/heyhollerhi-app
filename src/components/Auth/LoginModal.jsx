@@ -4,13 +4,27 @@ import { X, Mail, Lock, Check } from 'lucide-react';
 import './LoginModal.css';
 
 const LoginModal = ({ isOpen, onClose }) => {
-    const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } = useAuth();
+    const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, authError, clearAuthError } = useAuth();
     const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'forgot'
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null);
+
+    // Sync global auth error to local state when modal opens
+    useEffect(() => {
+        if (isOpen && authError) {
+            setError(authError);
+            // Clear global error so it doesn't reappear if we close and reopen manually without a new error
+            // But we might want to keep it if they close by accident? 
+            // Better to clear it to "consume" it.
+            clearAuthError();
+        } else if (isOpen) {
+            // Reset error if opening fresh (optional, but good UX)
+            // msg: kept local error reset in handleSubmit
+        }
+    }, [isOpen, authError, clearAuthError]);
 
     if (!isOpen) return null;
 
@@ -42,6 +56,12 @@ const LoginModal = ({ isOpen, onClose }) => {
                 setMode('login');
             }
         } catch (err) {
+            // Handle "Email not confirmed" specifically
+            if (err.message.includes('Email not confirmed')) {
+                setError('Please verify your email address before logging in.');
+                return;
+            }
+
             // Check if it's a credential error to provide specific feedback
             // Supabase auth.signInWithPassword returns generic "Invalid login credentials"
             if (err.message.includes('Invalid login credentials') || err.message.includes('Invalid login details')) {

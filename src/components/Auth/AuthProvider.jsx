@@ -103,6 +103,23 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
+        // Check for errors in URL (e.g. invalid/expired verification links)
+        const hash = window.location.hash;
+        if (hash && hash.includes('error=')) {
+            const params = new URLSearchParams(hash.substring(1)); // remove #
+            const errorDescription = params.get('error_description');
+            if (errorDescription) {
+                // Determine if it's a verification error
+                if (errorDescription.includes('Email link is invalid') || errorDescription.includes('expired')) {
+                    alert('This verification link is invalid or has expired. You may have already verified your email. Please try logging in.');
+                } else {
+                    alert('Authentication Error: ' + errorDescription);
+                }
+                // Clear hash to clean up URL
+                window.location.hash = '';
+            }
+        }
+
         // Listen for changes
         // We rely SOLELY on onAuthStateChange to handle initial load and updates
         // to avoid race conditions with manual getSession() calls.
@@ -113,6 +130,13 @@ export const AuthProvider = ({ children }) => {
                 // Redirect to update password page
                 window.location.hash = ''; // Clear the hash
                 window.location.pathname = '/update-password';
+            }
+
+            // Handle explicit verification event if needed (Supabase usually fires SIGNED_IN)
+            if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                // If we just verified, we might want to say "Verified!" but Supabase doesn't easily distinguish 
+                // verification login from normal login here without checking params/time.
+                // But the user specifically asked about the "Already verified" (error) case.
             }
 
             setSession(session);
@@ -211,7 +235,9 @@ export const AuthProvider = ({ children }) => {
         signOut,
         resetPassword,
         updateProfile,
-        completeProfile
+        completeProfile,
+        authError,
+        clearAuthError
     };
 
     return (

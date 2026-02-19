@@ -29,6 +29,15 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
         }
     }, [mustCompleteProfile]);
 
+    // Auto-open Login Modal if there is a global auth error (e.g. verification failed)
+    const { authError } = useAuth();
+    useEffect(() => {
+        if (authError) {
+            console.log("SidePanel: Opening login due to auth error");
+            setIsLoginOpen(true);
+        }
+    }, [authError]);
+
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
     };
