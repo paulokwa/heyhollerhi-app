@@ -21,6 +21,36 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
 
     const { user, profile, mustCompleteProfile, signOut } = useAuth();
 
+    // Swipe Logic for Mobile
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+
+    // Minimum swipe distance (in px) 
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null); // Reset
+        setTouchStart(e.targetTouches[0].clientY);
+    }
+
+    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientY);
+
+    const onTouchEndHandler = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isUpSwipe = distance > minSwipeDistance;
+        const isDownSwipe = distance < -minSwipeDistance;
+
+        if (isUpSwipe) {
+            setIsExpanded(true);
+        }
+
+        if (isDownSwipe) {
+            setIsExpanded(false);
+        }
+    }
+
     // Auto-open profile modal for new users (First Run Experience)
     useEffect(() => {
         if (mustCompleteProfile) {
@@ -107,7 +137,13 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
     return (
         <aside className={`side-panel glass-panel ${isExpanded ? 'expanded' : ''} ${viewMode === 'carousel' ? 'carousel-mode' : ''}`}>
             {/* Mobile Drag Handle */}
-            <div className="mobile-handle-bar" onClick={toggleExpand}>
+            <div
+                className="mobile-handle-bar"
+                onClick={toggleExpand}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEndHandler}
+            >
                 <div className="handle-pill"></div>
             </div>
 

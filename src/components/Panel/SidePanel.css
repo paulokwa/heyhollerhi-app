@@ -64,6 +64,7 @@
     align-items: center;
     cursor: grab;
     flex-shrink: 0;
+    touch-action: none;
 }
 
 .handle-pill {
@@ -139,10 +140,64 @@
         padding-bottom: env(safe-area-inset-bottom);
     }
 
+    /* Wave Emoji inside Mobile Header */
+    .wave-emoji {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 1.3rem;
+        /* Sized appropriately relative to h1 */
+        animation: wave-animation 2.5s infinite;
+        transform-origin: 70% 70%;
+        /* Pivot point near bottom center of hand */
+        transition: opacity 0.3s ease;
+    }
 
+    /* Hide emoji when panel expands */
+    .side-panel.expanded .wave-emoji {
+        display: none;
+    }
+
+    @keyframes wave-animation {
+        0% {
+            transform: rotate(0.0deg)
+        }
+
+        10% {
+            transform: rotate(14.0deg)
+        }
+
+        20% {
+            transform: rotate(-8.0deg)
+        }
+
+        30% {
+            transform: rotate(14.0deg)
+        }
+
+        40% {
+            transform: rotate(-4.0deg)
+        }
+
+        50% {
+            transform: rotate(10.0deg)
+        }
+
+        60% {
+            transform: rotate(0.0deg)
+        }
+
+        100% {
+            transform: rotate(0.0deg)
+        }
+    }
 }
 
 .view-toggle-btn {
+    display: none;
+}
+
+/* Hide wave emoji by default on desktop/tablet */
+.wave-emoji {
     display: none;
 }
 
