@@ -149,7 +149,7 @@ const SidePanel = ({ onLocationSelect, onPostDoubleClick, filters, onFilterToggl
 
             <header className="panel-header">
                 <div>
-                    <h1>Hey Holler Hi!</h1>
+                    <h1>Hey Holler Hi!<span className="wave-emoji">👋</span></h1>
                     <p className="tagline">Local pulse, verified & vibes.</p>
                 </div>
 

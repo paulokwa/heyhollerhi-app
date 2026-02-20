@@ -75,6 +75,11 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* Hide wave emoji by default on desktop/tablet */
+.wave-emoji {
+    display: none;
+}
+
 /* Mobile Adaptation */
 @media (max-width: 768px) {
     .mobile-handle-bar {
@@ -152,9 +157,10 @@
         transition: opacity 0.3s ease;
     }
 
-    /* Hide emoji when panel expands */
+    /* Stop waving animation when panel expands */
     .side-panel.expanded .wave-emoji {
-        display: none;
+        animation: none;
+        transform: rotate(0deg);
     }
 
     @keyframes wave-animation {
@@ -197,9 +203,6 @@
 }
 
 /* Hide wave emoji by default on desktop/tablet */
-.wave-emoji {
-    display: none;
-}
 
 /* Ensure header text is tight */
 .panel-header h1 {
