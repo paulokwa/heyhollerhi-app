@@ -1,16 +1,24 @@
 :root {
   /* Brand Colors */
-  --color-bg: #0f172a; /* Slate 900 */
-  --color-text-main: #f8fafc; /* Slate 50 */
-  --color-text-muted: #94a3b8; /* Slate 400 */
-  --color-primary: #8b5cf6; /* Violet 500 */
+  --color-bg: #0f172a;
+  /* Slate 900 */
+  --color-text-main: #f8fafc;
+  /* Slate 50 */
+  --color-text-muted: #94a3b8;
+  /* Slate 400 */
+  --color-primary: #8b5cf6;
+  /* Violet 500 */
   --color-primary-glow: rgba(139, 92, 246, 0.5);
 
   /* Categories */
-  --color-positive: #10b981; /* Emerald 500 */
-  --color-rant: #f43f5e; /* Rose 500 */
-  --color-general: #3b82f6; /* Blue 500 */
-  --color-found: #eab308; /* Yellow 500 */
+  --color-positive: #10b981;
+  /* Emerald 500 */
+  --color-rant: #f43f5e;
+  /* Rose 500 */
+  --color-general: #3b82f6;
+  /* Blue 500 */
+  --color-found: #eab308;
+  /* Yellow 500 */
 
   /* Glass Panel */
   --glass-bg: rgba(15, 23, 42, 0.6);
@@ -19,7 +27,7 @@
   --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   /* Spacing & Layout */
-  --panel-width: 400px;
+  --panel-width: 430px;
   --header-height: 60px;
   --radius-lg: 16px;
   --radius-md: 8px;
@@ -37,7 +45,8 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text-main);
   line-height: 1.5;
-  overflow: hidden; /* App-like feel */
+  overflow: hidden;
+  /* App-like feel */
   -webkit-font-smoothing: antialiased;
 }
 
