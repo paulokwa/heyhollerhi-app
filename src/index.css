@@ -34,6 +34,21 @@
   --radius-sm: 4px;
 }
 
+[data-theme='light'] {
+  /* Brand Colors */
+  --color-bg: #f8fafc;
+  /* Slate 50 */
+  --color-text-main: #0f172a;
+  /* Slate 900 */
+  --color-text-muted: #64748b;
+  /* Slate 500 */
+
+  /* Glass Panel */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

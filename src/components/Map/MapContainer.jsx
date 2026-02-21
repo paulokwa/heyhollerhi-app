@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './MapContainer.css';
 
-const MapContainer = ({ flyToLocation, postsData, onBoundsChange }) => {
+const MapContainer = ({ theme = 'dark', flyToLocation, postsData, onBoundsChange }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -20,9 +20,11 @@ const MapContainer = ({ flyToLocation, postsData, onBoundsChange }) => {
         if (map.current) return;
         if (!API_KEY) return;
 
+        const mapStyle = theme === 'light' ? 'streets-v2' : 'streets-v2-dark';
+
         map.current = new maplibregl.Map({
             container: mapContainer.current,
-            style: `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${API_KEY}`,
+            style: `https://api.maptiler.com/maps/${mapStyle}/style.json?key=${API_KEY}`,
             center: [lng, lat],
             zoom: zoom,
             projection: 'globe',

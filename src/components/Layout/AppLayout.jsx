@@ -4,6 +4,7 @@ import SidePanel from '../Panel/SidePanel';
 // import { MOCK_POSTS } from '../../data/mockPosts'; // Removed
 import { supabase } from '../../services/supabaseClient';
 import { dbPostToFeature } from '../../utils/mapUtils';
+import { useTheme } from '../../contexts/ThemeContext';
 import './AppLayout.css';
 
 const AppLayout = () => {
@@ -19,6 +20,9 @@ const AppLayout = () => {
     const [visiblePosts, setVisiblePosts] = React.useState([]); // Posts in current view/filter
     const [currentBounds, setCurrentBounds] = React.useState(null);
     const [searchBounds, setSearchBounds] = React.useState(null); // New: Stores bounds from search result
+
+    // Theme context
+    const { resolvedTheme } = useTheme();
 
     // Fetch Posts
     const fetchPosts = async () => {
@@ -202,6 +206,8 @@ const AppLayout = () => {
         <div className="app-layout">
             <div className="map-wrapper">
                 <MapContainer
+                    key={resolvedTheme} // Force remount on theme change for clean transition
+                    theme={resolvedTheme}
                     flyToLocation={flyToLocation}
                     // filters={filters} // MapContainer doesn't need filters anymore if we pass filtered data
                     postsData={postsCollection} // Pass real data

@@ -3,11 +3,13 @@ import { useAuth } from './AuthProvider';
 import Avatar from './Avatar';
 import MyPosts from '../../components/Profile/MyPosts';
 import { generateName } from '../../utils/nameGenerator';
-import { X, RefreshCw, Save, Trash2, LogOut, Download, List } from 'lucide-react';
+import { X, RefreshCw, Save, Trash2, LogOut, Download, List, Sun, Moon, Monitor } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 import './ProfileModal.css';
 
 const ProfileModal = ({ isOpen, onClose, isWelcomeMode }) => {
     const { user, profile, updateProfile, completeProfile, signOut } = useAuth();
+    const { theme, setTheme } = useTheme();
 
     // Local state for editing form
     const [displayName, setDisplayName] = useState('');
@@ -184,6 +186,42 @@ const ProfileModal = ({ isOpen, onClose, isWelcomeMode }) => {
                             </div>
 
                             {message && <div className={`status-message ${message.includes('Error') || message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}
+
+                            {!isWelcomeMode && (
+                                <div className="form-group theme-group">
+                                    <label>Theme Preference</label>
+                                    <div className="theme-toggle" style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTheme('auto')}
+                                            className={`theme-btn ${theme === 'auto' ? 'active' : ''}`}
+                                            title="Follow device settings"
+                                            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: theme === 'auto' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)', background: theme === 'auto' ? 'var(--color-primary-glow)' : 'transparent', color: theme === 'auto' ? 'var(--color-text-main)' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                        >
+                                            <Monitor size={16} /> Auto
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTheme('light')}
+                                            className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
+                                            title="Light Mode"
+                                            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: theme === 'light' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)', background: theme === 'light' ? 'var(--color-primary-glow)' : 'transparent', color: theme === 'light' ? 'var(--color-text-main)' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+
+                                        >
+                                            <Sun size={16} /> Light
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTheme('dark')}
+                                            className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
+                                            title="Dark Mode"
+                                            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: theme === 'dark' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)', background: theme === 'dark' ? 'var(--color-primary-glow)' : 'transparent', color: theme === 'dark' ? 'var(--color-text-main)' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                        >
+                                            <Moon size={16} /> Dark
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             <button type="submit" className="save-btn" disabled={loading}>
                                 {loading ? 'Saving...' : (isWelcomeMode ? 'Start Exploring' : 'Save Changes')}
